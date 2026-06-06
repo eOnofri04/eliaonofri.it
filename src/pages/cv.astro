@@ -1,0 +1,41 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro';
+---
+<BaseLayout title="CV" description="Curriculum Vitae of Elia Onofri.">
+  <div class="wrap page-body cv-wrap">
+    <p class="eyebrow">Curriculum Vitae</p>
+    <h1>Download CV</h1>
+    <p class="sub">Available in two themes — same content, different palette.</p>
+    <div class="cv-buttons">
+      <a class="cv-btn cv-btn--dark" href="/cv/CV_Onofri_dark.pdf" download>
+        Dark theme ↓
+      </a>
+      <a class="cv-btn cv-btn--light" href="/cv/CV_Onofri_light.pdf" download>
+        Light theme ↓
+      </a>
+    </div>
+    <p id="gpg" class="gpg-note">
+      <span class="gpg-label">GPG key</span> — see footer for the public key link.
+    </p>
+  </div>
+</BaseLayout>
+
+<style>
+  .cv-wrap { max-width: 52ch; }
+  h1 { font-size: clamp(2rem, 4vw, 2.8rem); margin-bottom: 10px; }
+  .sub { color: var(--ink-soft); margin: 0 0 32px; }
+  .cv-buttons { display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 40px; }
+  .cv-btn {
+    font-family: var(--mono);
+    font-size: 0.9rem;
+    padding: 13px 22px;
+    border-radius: 10px;
+    border: 1px solid var(--rule);
+    transition: border-color 0.18s, background 0.18s;
+  }
+  .cv-btn--dark  { background: var(--panel); color: var(--ink); }
+  .cv-btn--light { background: var(--teal-tint); border-color: var(--teal); color: var(--teal); }
+  .cv-btn:hover { border-color: var(--teal); background: var(--teal-tint); color: var(--teal); }
+  .gpg-note { font-family: var(--mono); font-size: 0.84rem; color: var(--muted); }
+  .gpg-label { color: var(--ink-soft); }
+</style>

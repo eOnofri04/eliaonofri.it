@@ -1,0 +1,261 @@
+/* ---- self-hosted variable fonts ---- */
+@font-face {
+  font-family: 'Source Serif 4';
+  src: url('/fonts/SourceSerif4-VariableFont-opsz-wght.ttf') format('truetype');
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Source Serif 4';
+  src: url('/fonts/SourceSerif4-Italic-VariableFont-opsz-wght.ttf') format('truetype');
+  font-weight: 100 900;
+  font-style: italic;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Source Sans 3';
+  src: url('/fonts/SourceSans3-VariableFont-wght.ttf') format('truetype');
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Source Sans 3';
+  src: url('/fonts/SourceSans3-Italic-VariableFont-wght.ttf') format('truetype');
+  font-weight: 100 900;
+  font-style: italic;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Source Code Pro';
+  src: url('/fonts/SourceCodePro-VariableFont-wght.ttf') format('truetype');
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Source Code Pro';
+  src: url('/fonts/SourceCodePro-Italic-VariableFont-wght.ttf') format('truetype');
+  font-weight: 100 900;
+  font-style: italic;
+  font-display: swap;
+}
+
+/* ---- design tokens ---- */
+:root {
+  /* dark — default */
+  --bg: #272822;
+  --bg-2: #21221d;
+  --panel: #2f312a;
+  --panel-2: #353730;
+  --ink: #f5f4ec;
+  --ink-soft: #d8d7cc;
+  --muted: #9d9b8c;
+  --rule: #3e3d32;
+  --rule-soft: #33342c;
+  --teal: #4e9286;
+  --terra: #d08a63;
+  --gold: #e0b354;
+  --purple: #9a86c4;
+  --teal-tint: rgba(78, 146, 134, 0.16);
+  --terra-tint: rgba(208, 138, 99, 0.15);
+  --gold-tint: rgba(224, 179, 84, 0.15);
+  --purple-tint: rgba(154, 134, 196, 0.15);
+  --shadow: 0 14px 40px -18px rgba(0, 0, 0, 0.65);
+
+  --serif: 'Source Serif 4', 'Iowan Old Style', Georgia, serif;
+  --sans: 'Source Sans 3', system-ui, -apple-system, sans-serif;
+  --mono: 'Source Code Pro', ui-monospace, 'SFMono-Regular', Menlo, monospace;
+  --maxw: 1080px;
+}
+
+:root[data-theme='light'] {
+  --bg: #fcfcfa;
+  --bg-2: #f3f1e9;
+  --panel: #ffffff;
+  --panel-2: #f7f5ee;
+  --ink: #2a2a22;
+  --ink-soft: #45453b;
+  --muted: #6f6e60;
+  --rule: #cfc9be;
+  --rule-soft: #e2ded1;
+  --teal: #3a746a;
+  --terra: #b5704f;
+  --gold: #c79a3e;
+  --purple: #6a5a8c;
+  --teal-tint: rgba(58, 116, 106, 0.12);
+  --terra-tint: rgba(181, 112, 79, 0.12);
+  --gold-tint: rgba(199, 154, 62, 0.14);
+  --purple-tint: rgba(106, 90, 140, 0.13);
+  --shadow: 0 14px 38px -20px rgba(40, 40, 30, 0.28);
+}
+
+/* ---- reset & base ---- */
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--sans);
+  font-size: 17px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  letter-spacing: 0.005em;
+  transition: background 0.35s ease, color 0.35s ease;
+}
+
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(60vw 50vh at 78% -8%, var(--teal-tint), transparent 60%),
+    radial-gradient(50vw 40vh at -6% 102%, var(--gold-tint), transparent 60%);
+  opacity: 0.9;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+h1, h2, h3 {
+  font-family: var(--serif);
+  font-weight: 600;
+  line-height: 1.15;
+  letter-spacing: -0.01em;
+  margin: 0;
+}
+
+.wrap {
+  max-width: var(--maxw);
+  margin: 0 auto;
+  padding: 0 28px;
+}
+
+/* ---- shared section heading ---- */
+.eyebrow {
+  font-family: var(--mono);
+  font-size: 0.8rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--teal);
+  margin: 0 0 14px;
+}
+
+.sec-title {
+  font-size: 1.05rem;
+  letter-spacing: 0.02em;
+  margin: 0 0 22px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: var(--ink-soft);
+}
+.sec-title::before {
+  content: '';
+  width: 26px;
+  height: 2px;
+  background: var(--terra);
+  display: inline-block;
+  flex-shrink: 0;
+}
+
+/* ---- chip ---- */
+.chip {
+  font-family: var(--mono);
+  font-size: 0.82rem;
+  padding: 6px 13px;
+  border-radius: 999px;
+  border: 1px solid var(--rule);
+  color: var(--ink-soft);
+  background: var(--panel);
+  transition: 0.18s;
+  cursor: default;
+}
+.chip[data-color='teal'] {
+  border-color: color-mix(in srgb, var(--teal) 45%, var(--rule));
+  background: var(--teal-tint);
+}
+.chip[data-color='terra'] {
+  border-color: color-mix(in srgb, var(--terra) 45%, var(--rule));
+  background: var(--terra-tint);
+}
+.chip[data-color='gold'] {
+  border-color: color-mix(in srgb, var(--gold) 45%, var(--rule));
+  background: var(--gold-tint);
+}
+.chip[data-color='purple'] {
+  border-color: color-mix(in srgb, var(--purple) 45%, var(--rule));
+  background: var(--purple-tint);
+}
+
+/* ---- publication entry ---- */
+.pub {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 16px;
+  padding: 14px 0;
+  border-top: 1px solid var(--rule-soft);
+}
+.pub-idx {
+  font-family: var(--mono);
+  font-size: 0.85rem;
+  color: var(--teal);
+  padding-top: 2px;
+}
+.pub-authors {
+  font-family: var(--serif);
+  font-size: 0.97rem;
+  color: var(--ink-soft);
+  margin: 0 0 2px;
+}
+.pub-authors b {
+  color: var(--ink);
+}
+.pub-title {
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: 1.04rem;
+  margin: 0 0 4px;
+  color: var(--ink);
+}
+.pub-venue {
+  font-size: 0.85rem;
+  color: var(--muted);
+  margin: 0 0 8px;
+}
+.pub-links {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.lnk {
+  font-family: var(--mono);
+  font-size: 0.72rem;
+  color: var(--ink-soft);
+  border: 1px solid var(--rule);
+  border-radius: 6px;
+  padding: 3px 9px;
+  transition: 0.18s;
+}
+.lnk:hover {
+  border-color: var(--teal);
+  color: var(--teal);
+  background: var(--teal-tint);
+}
+
+/* ---- page padding ---- */
+.page-body {
+  padding: 62px 0 80px;
+}

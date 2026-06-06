@@ -1,0 +1,30 @@
+---
+import BaseLayout from './BaseLayout.astro';
+
+interface Props {
+  title: string;
+  description?: string;
+  eyebrow?: string;
+  lang?: string;
+  langLink?: { href: string; lang: 'en' | 'it' };
+}
+
+const { title, description, eyebrow, lang, langLink } = Astro.props;
+---
+<BaseLayout title={title} description={description} lang={lang} langLink={langLink}>
+  <div class="wrap page-body article-wrap">
+    {eyebrow && <p class="eyebrow">{eyebrow}</p>}
+    <h1 class="article-title">{title}</h1>
+    <slot />
+  </div>
+</BaseLayout>
+
+<style>
+  .article-wrap {
+    max-width: 72ch;
+  }
+  .article-title {
+    font-size: clamp(2rem, 4.5vw, 3rem);
+    margin: 0 0 36px;
+  }
+</style>

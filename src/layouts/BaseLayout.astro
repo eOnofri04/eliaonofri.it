@@ -1,0 +1,45 @@
+---
+import Header from '@/components/Header.astro';
+import Footer from '@/components/Footer.astro';
+import '@/styles/global.css';
+
+interface Props {
+  title: string;
+  description?: string;
+  lang?: string;
+  langLink?: { href: string; lang: 'en' | 'it' };
+}
+
+const {
+  title,
+  description = 'Postdoctoral Researcher in Cryptography, Graph Theory, and Numerical Modelling.',
+  lang = 'en',
+  langLink,
+} = Astro.props;
+---
+<!doctype html>
+<html lang={lang} data-theme="dark">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>{title} — Elia Onofri</title>
+  <meta name="description" content={description} />
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <meta name="generator" content={Astro.generator} />
+
+  <!-- prevent flash of wrong theme -->
+  <script is:inline>
+    (function () {
+      var t = localStorage.getItem('theme');
+      if (t === 'light' || t === 'dark') document.documentElement.setAttribute('data-theme', t);
+    })();
+  </script>
+</head>
+<body>
+  <Header />
+  <main>
+    <slot />
+  </main>
+  <Footer langLink={langLink} />
+</body>
+</html>

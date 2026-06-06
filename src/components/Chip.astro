@@ -1,0 +1,7 @@
+---
+interface Props {
+  color?: 'teal' | 'terra' | 'gold' | 'purple' | 'neutral';
+}
+const { color = 'neutral' } = Astro.props;
+---
+<span class="chip" data-color={color}><slot /></span>

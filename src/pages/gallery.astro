@@ -1,0 +1,89 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import GalleryCard from '@/components/GalleryCard.astro';
+
+const pieces = [
+  { title: 'Collaboration Network', caption: 'Co-authorship structure rendered by a force-directed layout.', artType: 'network', tag: 'Graph Theory',   source: '2024', filter: 'graphs'    },
+  { title: 'Percolation Field',     caption: 'Pressure contours across a simulated porous medium.',         artType: 'field',   tag: 'Porous Media',  source: '2023', filter: 'numerical' },
+  { title: 'Golden Spiral',         caption: 'The Fibonacci construction behind the site mark.',             artType: 'spiral',  tag: 'Numerical',     source: 'cover',filter: 'numerical' },
+  { title: 'Hypercube',             caption: 'A projected tesseract from work on cube attacks.',             artType: 'cube',    tag: 'Cryptography',  source: '2025', filter: 'crypto'    },
+  { title: 'Crowd Trajectories',    caption: 'Tracked visitor paths through a crowded museum hall.',        artType: 'crowd',   tag: 'Crowd Tracking',source: '2022', filter: 'biology'   },
+  { title: 'Contraction Tree',      caption: 'The recursive merges of a graph-contraction scheme.',         artType: 'tree',    tag: 'Graph Theory',  source: '2024', filter: 'graphs'    },
+];
+
+const filters = ['all', 'graphs', 'numerical', 'crypto', 'biology'];
+---
+<BaseLayout title="Gallery" description="Scientific figures presented as artworks.">
+  <div class="wrap page-body">
+    <p class="eyebrow">Gallery</p>
+    <h1 class="gallery-title">Figures as artworks</h1>
+    <p class="lead">
+      A selection of graphics produced in the course of my research that, stripped of axes and
+      captions, stand on their own. Each links back to the work it came from.
+    </p>
+
+    <div class="filters" id="gal-filters">
+      {filters.map(f => (
+        <button class={`chip${f === 'all' ? ' active' : ''}`} data-filter={f}>
+          {f === 'all' ? 'All' : f.charAt(0).toUpperCase() + f.slice(1)}
+        </button>
+      ))}
+    </div>
+
+    <div class="gal-grid" id="gal-grid">
+      {pieces.map(p => <GalleryCard {...p} />)}
+    </div>
+  </div>
+</BaseLayout>
+
+<style>
+  .gallery-title {
+    font-size: clamp(1.8rem, 4vw, 2.4rem);
+    margin-bottom: 14px;
+  }
+  .lead {
+    max-width: 60ch;
+    color: var(--ink-soft);
+    font-size: 1.05rem;
+    margin: 0 0 26px;
+  }
+  .filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 30px;
+  }
+  .filters .chip {
+    cursor: pointer;
+    background: none;
+    border: 1px solid var(--rule);
+  }
+  .filters .chip.active {
+    color: var(--ink);
+    border-color: var(--teal);
+    background: var(--teal-tint);
+  }
+  .gal-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+  }
+  @media (max-width: 880px) { .gal-grid { grid-template-columns: repeat(2, 1fr); } }
+  @media (max-width: 560px) { .gal-grid { grid-template-columns: 1fr; } }
+</style>
+
+<script>
+  const btns = document.querySelectorAll<HTMLButtonElement>('#gal-filters .chip');
+  const cards = document.querySelectorAll<HTMLElement>('#gal-grid .card');
+
+  btns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      btns.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      const f = btn.dataset.filter ?? 'all';
+      cards.forEach(card => {
+        card.style.display = (f === 'all' || card.dataset.filter === f) ? '' : 'none';
+      });
+    });
+  });
+</script>

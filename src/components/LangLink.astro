@@ -1,0 +1,26 @@
+---
+interface Props {
+  href: string;
+  lang: 'en' | 'it';
+}
+const { href, lang } = Astro.props;
+const label = lang === 'it' ? 'Leggi in italiano' : 'Read in English';
+---
+<a href={href} class="lang-link" hreflang={lang}>{label}</a>
+
+<style>
+  .lang-link {
+    font-family: var(--mono);
+    font-size: 0.78rem;
+    color: var(--muted);
+    border: 1px solid var(--rule);
+    border-radius: 6px;
+    padding: 4px 10px;
+    transition: color 0.18s, border-color 0.18s;
+    display: inline-block;
+  }
+  .lang-link:hover {
+    color: var(--teal);
+    border-color: var(--teal);
+  }
+</style>

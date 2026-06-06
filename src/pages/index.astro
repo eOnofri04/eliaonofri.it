@@ -1,0 +1,290 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import HighlightCard from '@/components/HighlightCard.astro';
+import Chip from '@/components/Chip.astro';
+import { affiliations } from '@/data/affiliations';
+const primary = affiliations.filter(a => a.primary);
+const secondary = affiliations.filter(a => !a.primary);
+import { highlights, researchAreas } from '@/data/highlights';
+---
+<BaseLayout
+  title="Home"
+  description="Elia Onofri — Postdoctoral Researcher in Cryptography, Graph Theory, and Numerical Modelling. KAUST · CNR · Roma Tre."
+>
+  <div class="wrap page-body">
+
+    <!-- ── Hero ── -->
+    <section class="hero">
+      <div class="hero-text">
+        <h1>Elia Onofri</h1>
+
+        {primary.map(a => (
+          <p class="primary-affil">
+            <span class="primary-role">{a.role}</span>
+            {a.url
+              ? <a href={a.url} target="_blank" rel="noopener" class="primary-org">{a.org}</a>
+              : <span class="primary-org">{a.org}</span>
+            }
+          </p>
+        ))}
+
+        <p class="lede">
+          Cryptography, security, artificial intelligence, graph theory, and numerical modelling — with a recurring
+          interest in turning mathematical structure into something you can see.
+        </p>
+
+        <ul class="affils" role="list">
+          {secondary.map(a => (
+            <li class={`affil affil--${a.color}`}>
+              <strong>{a.role}</strong>
+              {a.url
+                ? <a href={a.url} target="_blank" rel="noopener" class="org">{a.org}</a>
+                : <span class="org">{a.org}</span>
+              }
+            </li>
+          ))}
+        </ul>
+
+        <p class="erdos">My Erdős number is <strong>3</strong> &mdash; Erdős · Komornik · Pedicini · Onofri</p>
+
+        <div class="id-row">
+          <a href="https://orcid.org/0000-0001-8391-2563" target="_blank" rel="noopener">ORCID</a>
+          <a href="https://scholar.google.com/citations?user=7IAjzlEAAAAJ" target="_blank" rel="noopener">Scholar</a>
+          <a href="https://www.scopus.com/authid/detail.uri?authorId=57215199778" target="_blank" rel="noopener">Scopus</a>
+          <a href="https://github.com/eonofri04" target="_blank" rel="noopener">GitHub</a>
+          <a href="https://www.linkedin.com/in/elia-onofri-80b403173/" target="_blank" rel="noopener">LinkedIn</a>
+          <a href="mailto:elia.onofri@kaust.edu.sa">Email</a>
+        </div>
+      </div>
+
+      <figure class="hero-art">
+        <div class="art-frame">
+          <img
+            class="fig-dark"
+            src="/figures/fibonacci_dark.svg"
+            alt="A Fibonacci-inspired worst-case structure for beta-contraction"
+            width="800"
+            height="800"
+          />
+          <img
+            class="fig-light"
+            src="/figures/fibonacci_light.svg"
+            alt="A Fibonacci-inspired worst-case structure for beta-contraction"
+            width="800"
+            height="800"
+          />
+        </div>
+        <figcaption>A Fibonacci-inspired worst-case structure for beta-contraction</figcaption>
+      </figure>
+    </section>
+
+    <!-- ── Currently ── -->
+    <section class="strip" aria-labelledby="currently-heading">
+      <h2 class="sec-title" id="currently-heading">Currently</h2>
+      <div class="hl-grid">
+        {highlights.map(h => (
+          <HighlightCard kind={h.kind} date={h.date} color={h.color} href={h.href}>
+            <span slot="title">{h.title}</span>
+            <span slot="detail">{h.detail}</span>
+          </HighlightCard>
+        ))}
+      </div>
+    </section>
+
+    <!-- ── Research areas ── -->
+    <section class="areas" aria-labelledby="areas-heading">
+      <h2 class="sec-title" id="areas-heading">Research areas</h2>
+      <div class="chips">
+        {researchAreas.map(a => (
+          <Chip color={a.color}>{a.label}</Chip>
+        ))}
+      </div>
+    </section>
+
+  </div>
+</BaseLayout>
+
+<style>
+  /* hero layout */
+  .hero {
+    display: grid;
+    grid-template-columns: 1.25fr 0.9fr;
+    gap: 54px;
+    align-items: center;
+    padding-bottom: 18px;
+  }
+
+  h1 {
+    font-size: clamp(2.5rem, 5.5vw, 3.9rem);
+    margin: 0 0 4px;
+  }
+
+  /* primary affiliation — beneath name, no bullet */
+  .primary-affil {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    margin: 0 0 20px;
+  }
+  .primary-role {
+    font-size: 1.18rem;
+    font-weight: 600;
+    color: var(--ink-soft);
+    line-height: 1.3;
+  }
+  .primary-org {
+    font-family: var(--mono);
+    font-size: 0.88rem;
+    color: var(--muted);
+    transition: color 0.18s;
+  }
+  a.primary-org:hover { color: var(--teal); }
+
+  .lede {
+    font-size: 1.12rem;
+    color: var(--ink-soft);
+    max-width: 48ch;
+    margin: 0 0 26px;
+    line-height: 1.55;
+  }
+
+  /* secondary affiliations list */
+  .affils {
+    list-style: none;
+    margin: 0 0 26px;
+    padding: 0;
+    display: grid;
+    gap: 9px;
+  }
+  .affil {
+    padding-left: 20px;
+    position: relative;
+    font-size: 0.92rem;
+    color: var(--muted);
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+  }
+  .affil::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0.62em;
+    width: 7px;
+    height: 7px;
+    border-radius: 2px;
+  }
+  .affil--teal::before   { background: var(--teal); }
+  .affil--terra::before  { background: var(--terra); }
+  .affil--gold::before   { background: var(--gold); }
+  .affil--purple::before { background: var(--purple); }
+
+  .affil strong {
+    font-weight: 600;
+    color: var(--ink-soft);
+    font-size: inherit;
+  }
+  .org {
+    font-family: var(--mono);
+    font-size: 0.8rem;
+    color: var(--muted);
+    transition: color 0.18s;
+  }
+  a.org:hover { color: var(--teal); }
+
+  .erdos {
+    font-family: var(--mono);
+    font-size: 0.78rem;
+    color: var(--muted);
+    margin: 0 0 18px;
+  }
+  .erdos strong { color: var(--teal); font-weight: 600; }
+
+  /* identifier row */
+  .id-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0;
+    font-family: var(--mono);
+    font-size: 0.82rem;
+  }
+  .id-row a {
+    color: var(--muted);
+    padding: 4px 14px;
+    position: relative;
+    transition: color 0.18s;
+  }
+  .id-row a:first-child { padding-left: 0; }
+  .id-row a + a::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 1px;
+    height: 13px;
+    background: var(--rule);
+  }
+  .id-row a:hover { color: var(--teal); }
+
+  /* hero artwork */
+  .hero-art {
+    align-self: start;
+    margin: 0;
+  }
+  .art-frame {
+    background: var(--panel);
+    border: 1px solid var(--rule);
+    border-radius: 14px;
+    padding: 18px;
+    box-shadow: var(--shadow);
+    overflow: hidden;
+  }
+  .art-frame img {
+    width: 100%;
+    height: auto;
+    display: block;
+    border-radius: 4px;
+  }
+  /* theme-aware figure swap — pure CSS, no flash */
+  :global(:root[data-theme='dark'])  .fig-light { display: none; }
+  :global(:root[data-theme='light']) .fig-dark  { display: none; }
+  :global(:root:not([data-theme='light'])) .fig-light { display: none; }
+  .hero-art figcaption {
+    font-family: var(--mono);
+    font-size: 0.74rem;
+    color: var(--muted);
+    margin-top: 12px;
+    text-align: center;
+    letter-spacing: 0.02em;
+  }
+
+  /* currently strip */
+  .strip { margin-top: 64px; }
+  .hl-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+  }
+
+  /* research areas */
+  .areas { margin-top: 62px; }
+  .chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 9px;
+  }
+
+  /* responsive */
+  @media (max-width: 880px) {
+    .hero {
+      grid-template-columns: 1fr;
+      gap: 34px;
+    }
+    .hero-art { max-width: 360px; }
+  }
+
+  @media (max-width: 640px) {
+    .hl-grid { grid-template-columns: 1fr; }
+  }
+</style>

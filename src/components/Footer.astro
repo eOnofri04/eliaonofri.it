@@ -1,0 +1,105 @@
+---
+interface Props {
+  langLink?: { href: string; lang: 'en' | 'it' };
+}
+const { langLink } = Astro.props;
+const year = new Date().getFullYear();
+---
+<footer>
+  <div class="wrap">
+    <div class="foot-grid">
+      <div>
+        <h4>Elia Onofri</h4>
+        <p>
+          Postdoctoral Researcher, CRI-Lab (CEMSE)<br />
+          King Abdullah University of Science and Technology<br />
+          3231-WS02, Building 4 (sea side), Level 3<br />
+          Thuwal (23955), Makkah Region<br />
+          Saudi Arabia
+        </p>
+      </div>
+      <div>
+        <h4>Contact</h4>
+        <p>
+          elia.onofri[at]kaust[dot]edu[dot]sa<br />
+          elia.onofri[at]cnr[dot]it<br />
+          eonofri[at]uniroma3[dot]it<br />
+          <a href="/cv#gpg">Public GPG key →</a>
+        </p>
+      </div>
+      <div class="foot-id">
+        <h4>Elsewhere</h4>
+        <a href="https://orcid.org/0000-0001-8391-2563" target="_blank" rel="noopener">ORCID</a>
+        <a href="https://scholar.google.com/citations?user=7IAjzlEAAAAJ" target="_blank" rel="noopener">Google Scholar</a>
+        <a href="https://www.scopus.com/authid/detail.uri?authorId=57215199778" target="_blank" rel="noopener">Scopus</a>
+        <a href="https://github.com/eonofri04" target="_blank" rel="noopener">GitHub</a>
+        <a href="https://www.linkedin.com/in/elia-onofri-80b403173/" target="_blank" rel="noopener">LinkedIn</a>
+      </div>
+    </div>
+    <div class="foot-note">
+      <span>© {year} Elia Onofri</span>
+      {langLink && (
+        <span>
+          {langLink.lang === 'it'
+            ? <><a href={langLink.href} hreflang="it">Leggi in italiano</a></>
+            : <><a href={langLink.href} hreflang="en">Read in English</a></>
+          }
+        </span>
+      )}
+    </div>
+  </div>
+</footer>
+
+<style>
+  footer {
+    border-top: 1px solid var(--rule);
+    margin-top: 70px;
+    padding: 40px 0 30px;
+    color: var(--muted);
+  }
+  .foot-grid {
+    display: grid;
+    grid-template-columns: 1.4fr 1fr 1fr;
+    gap: 30px;
+  }
+  h4 {
+    font-family: var(--mono);
+    font-size: 0.74rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+    margin: 0 0 12px;
+    font-weight: 500;
+  }
+  p, a {
+    font-size: 0.88rem;
+    line-height: 1.7;
+    color: var(--muted);
+  }
+  a:hover { color: var(--teal); }
+  .foot-id a { display: block; }
+  .foot-note {
+    margin-top: 30px;
+    padding-top: 18px;
+    border-top: 1px solid var(--rule-soft);
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 10px;
+    font-family: var(--mono);
+    font-size: 0.74rem;
+  }
+  .foot-note a {
+    font-size: 0.74rem;
+    font-family: var(--mono);
+    color: var(--muted);
+  }
+  .foot-note a:hover { color: var(--teal); }
+
+  @media (max-width: 880px) {
+    .foot-grid { grid-template-columns: 1fr 1fr; }
+  }
+  @media (max-width: 640px) {
+    .foot-grid { grid-template-columns: 1fr; }
+  }
+</style>

@@ -1,0 +1,82 @@
+---
+interface Props {
+  kind: string;
+  date: string;
+  color?: 'teal' | 'terra' | 'gold';
+  href?: string;
+}
+const { kind, date, color = 'teal', href } = Astro.props;
+---
+<article class={`hl hl--${color}`} role={href ? 'link' : undefined}>
+  <div class="hl-meta">
+    <span class="hl-kind">{kind}</span>
+    <time class="hl-date">{date}</time>
+  </div>
+  <h3><slot name="title" /></h3>
+  <p><slot name="detail" /></p>
+  {href && <a href={href} class="hl-link" tabindex="-1" aria-hidden="true" />}
+</article>
+
+<style>
+  .hl {
+    background: var(--panel);
+    border: 1px solid var(--rule);
+    border-radius: 11px;
+    padding: 18px 20px 18px 22px;
+    position: relative;
+    transition: transform 0.2s, border-color 0.2s;
+  }
+  .hl::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 14px;
+    bottom: 14px;
+    width: 3px;
+    border-radius: 3px;
+  }
+  .hl--teal::before  { background: var(--teal); }
+  .hl--terra::before { background: var(--terra); }
+  .hl--gold::before  { background: var(--gold); }
+
+  .hl:hover { transform: translateY(-3px); border-color: var(--rule-soft); }
+
+  .hl-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 10px;
+    margin-bottom: 8px;
+  }
+  .hl-kind {
+    font-family: var(--mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+  .hl--teal .hl-kind  { color: var(--teal); }
+  .hl--terra .hl-kind { color: var(--terra); }
+  .hl--gold .hl-kind  { color: var(--gold); }
+
+  .hl-date {
+    font-family: var(--mono);
+    font-size: 0.74rem;
+    color: var(--muted);
+  }
+
+  h3 {
+    font-size: 1.05rem;
+    margin: 0 0 5px;
+  }
+  p {
+    margin: 0;
+    font-size: 0.92rem;
+    color: var(--muted);
+  }
+
+  .hl-link {
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+  }
+</style>

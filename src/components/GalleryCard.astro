@@ -1,0 +1,82 @@
+---
+interface Props {
+  title: string;
+  caption: string;
+  tag: string;
+  source: string;
+  artType: string;
+  filter: string;
+}
+const { title, caption, tag, source, artType, filter } = Astro.props;
+---
+<article class="card" data-filter={filter}>
+  <div class="canvas">
+    <svg data-art={artType} viewBox="0 0 400 400" aria-hidden="true"></svg>
+  </div>
+  <div class="meta">
+    <h3>{title}</h3>
+    <p class="cap">{caption}</p>
+    <div class="foot">
+      <span class="tag">{tag}</span>
+      <span class="src">{source}</span>
+    </div>
+  </div>
+</article>
+
+<style>
+  .card {
+    background: var(--panel);
+    border: 1px solid var(--rule);
+    border-radius: 13px;
+    overflow: hidden;
+    transition: transform 0.22s, border-color 0.22s, box-shadow 0.22s;
+  }
+  .card:hover {
+    transform: translateY(-4px);
+    border-color: var(--rule-soft);
+    box-shadow: var(--shadow);
+  }
+  .canvas {
+    background: var(--bg-2);
+    aspect-ratio: 1 / 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-bottom: 1px solid var(--rule);
+  }
+  .canvas svg {
+    width: 88%;
+    height: 88%;
+  }
+  .meta {
+    padding: 15px 17px 17px;
+  }
+  h3 {
+    font-size: 1.12rem;
+    margin: 0 0 4px;
+  }
+  .cap {
+    font-size: 0.9rem;
+    color: var(--muted);
+    margin: 0 0 12px;
+    line-height: 1.5;
+  }
+  .foot {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+  }
+  .tag {
+    font-family: var(--mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--terra);
+  }
+  .src {
+    font-family: var(--mono);
+    font-size: 0.7rem;
+    color: var(--muted);
+  }
+</style>

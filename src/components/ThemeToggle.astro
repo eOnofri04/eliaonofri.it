@@ -1,0 +1,57 @@
+---
+---
+<button id="theme-toggle" aria-label="Toggle colour theme">
+  <span id="theme-icon" aria-hidden="true"></span>
+  <span id="theme-label"></span>
+</button>
+
+<style>
+  button {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    cursor: pointer;
+    font-family: var(--mono);
+    font-size: 0.76rem;
+    color: var(--muted);
+    background: var(--panel);
+    border: 1px solid var(--rule);
+    padding: 7px 11px;
+    border-radius: 999px;
+    transition: color 0.18s, border-color 0.18s;
+    white-space: nowrap;
+  }
+  button:hover {
+    color: var(--ink);
+    border-color: var(--gold);
+  }
+  button svg {
+    width: 15px;
+    height: 15px;
+    display: block;
+    flex-shrink: 0;
+  }
+</style>
+
+<script>
+  const SUN = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M5 5l1.5 1.5M17.5 17.5L19 19M19 5l-1.5 1.5M6.5 17.5L5 19"/></svg>`;
+  const MOON = `<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 1 0 9.8 9.8z"/></svg>`;
+
+  function applyTheme(theme: string) {
+    document.documentElement.setAttribute('data-theme', theme);
+    localStorage.setItem('theme', theme);
+    const icon = document.getElementById('theme-icon');
+    const label = document.getElementById('theme-label');
+    if (icon) icon.innerHTML = theme === 'dark' ? MOON : SUN;
+    if (label) label.textContent = theme === 'dark' ? 'Light' : 'Dark';
+  }
+
+  const btn = document.getElementById('theme-toggle');
+  const current = document.documentElement.getAttribute('data-theme') ?? 'dark';
+  applyTheme(current);
+
+  btn?.addEventListener('click', () => {
+    const next = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+    applyTheme(next);
+  });
+</script>

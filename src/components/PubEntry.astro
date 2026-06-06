@@ -1,0 +1,35 @@
+---
+interface Link {
+  label: string;
+  href: string;
+}
+interface Props {
+  idx: string | number;
+  authors: string;
+  boldSurname?: string;
+  title: string;
+  venue: string;
+  links?: Link[];
+}
+const { idx, authors, boldSurname = 'Onofri', title, venue, links = [] } = Astro.props;
+
+function markSurname(raw: string, surname: string) {
+  return raw.replace(
+    new RegExp(`(${surname})`, 'g'),
+    '<b>$1</b>',
+  );
+}
+---
+<article class="pub">
+  <span class="pub-idx">[{idx}]</span>
+  <div class="pub-body">
+    <p class="pub-authors" set:html={markSurname(authors, boldSurname)} />
+    <p class="pub-title">{title}</p>
+    <p class="pub-venue">{venue}</p>
+    {links.length > 0 && (
+      <div class="pub-links">
+        {links.map(l => <a class="lnk" href={l.href} target="_blank" rel="noopener">{l.label}</a>)}
+      </div>
+    )}
+  </div>
+</article>
