@@ -1,8 +1,312 @@
 ---
-import ArticleLayout from '@/layouts/ArticleLayout.astro';
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import Chip from '@/components/Chip.astro';
+import { projects, talks, service, type TalkKind } from '@/data/research';
+
+const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+const fmtDate = (iso: string) => {
+  const [y, m, d] = iso.split('-');
+  return `${+d} ${MONTHS[+m - 1]} ${y}`;
+};
+
+const KIND_COLOR: Record<TalkKind, string> = {
+  'Talk': 'teal',
+  'Invited talk': 'teal',
+  'Invited lesson': 'gold',
+  'Seminar': 'terra',
+  'Poster': 'purple',
+  'Mini-course': 'gold',
+};
+
+// group talks by year (already reverse-chronological in the data)
+const sortedTalks = [...talks].sort((a, b) => b.date.localeCompare(a.date));
+const talkYears = [...new Set(sortedTalks.map((t) => t.date.slice(0, 4)))];
 ---
-<ArticleLayout title="Research" eyebrow="Research">
-  <p style="color: var(--ink-soft);">
-    Funded projects (H2IOSC, ERA4TB, …) and a Talks &amp; Seminars list — coming soon.
-  </p>
-</ArticleLayout>
+<BaseLayout
+  title="Research"
+  description="Funded projects, talks & seminars, and academic service by Elia Onofri."
+>
+  <div class="wrap page-body">
+    <p class="eyebrow">Research</p>
+    <h1>Research</h1>
+    <p class="lead">
+      Funded projects across cryptography, applied mathematics, and AI; a record of talks and seminars; and
+      service to the community. Publications live on the <a href="/publications">publications page</a>.
+    </p>
+
+    <nav class="jump" aria-label="Sections">
+      <a href="#projects">Projects</a>
+      <a href="#talks">Talks &amp; Seminars</a>
+      <a href="#service">Service</a>
+    </nav>
+
+    <!-- ── Projects ── -->
+    <section id="projects" class="block">
+      <h2 class="sec-title">Funded projects</h2>
+      <div class="proj-grid">
+        {projects.map((p) => (
+          <article class={`proj proj--${p.color}`}>
+            <header class="proj-head">
+              <span class="proj-acr">{p.acronym}</span>
+              <span class="proj-period">{p.period}</span>
+            </header>
+            <h3 class="proj-title">{p.title}</h3>
+            <p class="proj-org">{p.org}</p>
+            <p class="proj-blurb">{p.blurb}</p>
+            {p.grant && <p class="proj-grant">{p.grant}</p>}
+            <div class="proj-foot">
+              <div class="proj-tags">
+                {p.tags.map((t) => <Chip color={p.color}>{t}</Chip>)}
+              </div>
+              {p.url && <a class="proj-link" href={p.url} target="_blank" rel="noopener">site ↗</a>}
+            </div>
+          </article>
+        ))}
+      </div>
+    </section>
+
+    <!-- ── Talks ── -->
+    <section id="talks" class="block">
+      <h2 class="sec-title">Talks &amp; seminars <span class="sec-count">{talks.length}</span></h2>
+      {talkYears.map((yr) => (
+        <div class="year-group">
+          <p class="year-label">{yr}</p>
+          <ul class="talk-list" role="list">
+            {sortedTalks.filter((t) => t.date.startsWith(yr)).map((t) => (
+              <li class={`talk talk--${KIND_COLOR[t.kind]}`}>
+                <span class="talk-date">{fmtDate(t.date)}</span>
+                <div class="talk-body">
+                  <p class="talk-title">
+                    {t.title}
+                    <span class={`talk-kind kind--${KIND_COLOR[t.kind]}`}>{t.kind}</span>
+                  </p>
+                  <p class="talk-meta">
+                    {t.event}{t.location && <span class="talk-loc"> · {t.location}</span>}
+                    {t.links?.map((l) => (
+                      <a class="talk-link" href={l.href} target="_blank" rel="noopener"> · {l.label} ↗</a>
+                    ))}
+                  </p>
+                </div>
+              </li>
+            ))}
+          </ul>
+        </div>
+      ))}
+    </section>
+
+    <!-- ── Service ── -->
+    <section id="service" class="block">
+      <h2 class="sec-title">Service</h2>
+      <p class="block-intro">Contributions to the scholarly community — peer review, programme committees, and event organising.</p>
+      {service.map((b) => (
+        <div class="svc-block">
+          <h3 class="svc-head">{b.heading}</h3>
+          {b.roles && (
+            <ul class="svc-roles" role="list">
+              {b.roles.map((r) => (
+                <li class="svc-role">
+                  <span class="svc-rolename">{r.role}</span>
+                  <div class="svc-rolebody">
+                    <p class="svc-org">
+                      {r.url
+                        ? <a href={r.url} target="_blank" rel="noopener">{r.org} ↗</a>
+                        : r.org}
+                    </p>
+                    {r.detail && <p class="svc-detail">{r.detail}</p>}
+                  </div>
+                </li>
+              ))}
+            </ul>
+          )}
+          {b.tagGroups?.map((g) => (
+            <div class="svc-taggroup">
+              <p class="svc-taglabel">{g.label}</p>
+              <div class="svc-tags">
+                {g.tags.map((t) => (
+                  <span class="svc-tag">{t.name}{t.detail && <em>{t.detail}</em>}</span>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+      ))}
+    </section>
+  </div>
+</BaseLayout>
+
+<style>
+  .eyebrow {
+    font-family: var(--mono);
+    font-size: 0.78rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin: 0 0 6px;
+  }
+  h1 { font-size: clamp(2rem, 4vw, 2.8rem); margin: 0 0 14px; }
+  .lead { color: var(--ink-soft); max-width: 64ch; line-height: 1.6; margin: 0 0 22px; }
+  .lead a { color: var(--teal); }
+  .lead a:hover { text-decoration: underline; }
+
+  .jump {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 8px;
+    position: sticky;
+    top: 64px;
+    z-index: 5;
+    padding: 12px 0;
+    background: color-mix(in srgb, var(--bg) 92%, transparent);
+    backdrop-filter: blur(6px);
+  }
+  .jump a {
+    font-family: var(--mono);
+    font-size: 0.8rem;
+    color: var(--muted);
+    border: 1px solid var(--rule);
+    border-radius: 20px;
+    padding: 5px 14px;
+    transition: color 0.18s, border-color 0.18s;
+  }
+  .jump a:hover { color: var(--ink); border-color: var(--muted); }
+
+  .block { margin-top: 46px; scroll-margin-top: 120px; }
+  .sec-title {
+    font-family: var(--serif);
+    font-size: 1.5rem;
+    color: var(--ink);
+    margin: 0 0 18px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid var(--rule);
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+  }
+  .sec-count { font-family: var(--mono); font-size: 0.82rem; color: var(--muted); }
+  .block-intro { color: var(--muted); margin: 0 0 22px; max-width: 60ch; }
+
+  /* projects */
+  .proj-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+  }
+  .proj {
+    background: var(--panel);
+    border: 1px solid var(--rule);
+    border-left: 3px solid var(--teal);
+    border-radius: 12px;
+    padding: 18px 20px;
+    display: flex;
+    flex-direction: column;
+  }
+  .proj--teal { border-left-color: var(--teal); }
+  .proj--terra { border-left-color: var(--terra); }
+  .proj--gold { border-left-color: var(--gold); }
+  .proj--purple { border-left-color: var(--purple); }
+  .proj-head { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; }
+  .proj-acr {
+    font-family: var(--mono);
+    font-size: 0.82rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    color: var(--ink);
+  }
+  .proj-period { font-family: var(--mono); font-size: 0.74rem; color: var(--muted); }
+  .proj-title { font-family: var(--serif); font-size: 1.05rem; line-height: 1.35; margin: 8px 0 2px; color: var(--ink); }
+  .proj-org { font-family: var(--mono); font-size: 0.76rem; color: var(--muted); margin: 0 0 10px; }
+  .proj-blurb { font-size: 0.9rem; color: var(--ink-soft); line-height: 1.5; margin: 0 0 10px; }
+  .proj-grant { font-family: var(--mono); font-size: 0.72rem; color: var(--muted); margin: 0 0 14px; }
+  .proj-foot { margin-top: auto; display: flex; justify-content: space-between; align-items: flex-end; gap: 10px; }
+  .proj-tags { display: flex; flex-wrap: wrap; gap: 6px; }
+  .proj-link { font-family: var(--mono); font-size: 0.78rem; color: var(--teal); white-space: nowrap; }
+  .proj-link:hover { text-decoration: underline; }
+
+  /* talks */
+  .year-group { margin-bottom: 18px; }
+  .year-label {
+    font-family: var(--mono);
+    font-size: 0.82rem;
+    color: var(--muted);
+    margin: 0 0 6px;
+    letter-spacing: 0.06em;
+  }
+  .talk-list { list-style: none; margin: 0; padding: 0; }
+  .talk {
+    display: grid;
+    grid-template-columns: 9.5em 1fr;
+    gap: 4px 14px;
+    padding: 11px 0 11px 14px;
+    border-left: 2px solid var(--rule);
+    transition: border-color 0.18s;
+  }
+  .talk:hover { border-left-color: var(--teal); }
+  .talk--teal:hover { border-left-color: var(--teal); }
+  .talk--terra:hover { border-left-color: var(--terra); }
+  .talk--gold:hover { border-left-color: var(--gold); }
+  .talk--purple:hover { border-left-color: var(--purple); }
+  .talk-date { font-family: var(--mono); font-size: 0.78rem; color: var(--muted); padding-top: 2px; }
+  .talk-title { font-family: var(--serif); font-size: 1rem; color: var(--ink); margin: 0 0 2px; line-height: 1.4; }
+  .talk-kind {
+    font-family: var(--mono);
+    font-size: 0.64rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    padding: 1px 7px;
+    border-radius: 20px;
+    margin-left: 8px;
+    white-space: nowrap;
+    vertical-align: 0.12em;
+    border: 1px solid currentColor;
+  }
+  .kind--teal { color: var(--teal); }
+  .kind--terra { color: var(--terra); }
+  .kind--gold { color: var(--gold); }
+  .kind--purple { color: var(--purple); }
+  .talk-meta { font-size: 0.84rem; color: var(--muted); margin: 0; }
+  .talk-loc { color: var(--muted); }
+  .talk-link { color: var(--teal); }
+  .talk-link:hover { text-decoration: underline; }
+
+  /* service */
+  .svc-block { margin-bottom: 30px; }
+  .svc-head { font-family: var(--serif); font-size: 1.15rem; color: var(--ink); margin: 0 0 12px; }
+  .svc-roles { list-style: none; margin: 0 0 14px; padding: 0; }
+  .svc-role {
+    display: grid;
+    grid-template-columns: 12em 1fr;
+    gap: 4px 14px;
+    padding: 9px 0;
+    border-bottom: 1px solid var(--rule-soft);
+  }
+  .svc-rolename {
+    font-family: var(--mono);
+    font-size: 0.76rem;
+    color: var(--teal);
+    padding-top: 1px;
+  }
+  .svc-org { font-family: var(--serif); font-size: 0.96rem; color: var(--ink); margin: 0; }
+  .svc-org a { color: var(--ink); }
+  .svc-org a:hover { color: var(--teal); }
+  .svc-detail { font-family: var(--mono); font-size: 0.74rem; color: var(--muted); margin: 2px 0 0; }
+  .svc-taggroup { margin: 12px 0; }
+  .svc-taglabel { font-family: var(--mono); font-size: 0.74rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); margin: 0 0 8px; }
+  .svc-tags { display: flex; flex-wrap: wrap; gap: 8px; }
+  .svc-tag {
+    font-size: 0.82rem;
+    color: var(--ink-soft);
+    background: var(--panel);
+    border: 1px solid var(--rule);
+    border-radius: 8px;
+    padding: 4px 10px;
+  }
+  .svc-tag em { font-family: var(--mono); font-style: normal; font-size: 0.72rem; color: var(--muted); margin-left: 6px; }
+
+  @media (max-width: 760px) {
+    .proj-grid { grid-template-columns: 1fr; }
+    .talk { grid-template-columns: 1fr; gap: 2px; }
+    .talk-date { padding-top: 0; }
+    .svc-role { grid-template-columns: 1fr; gap: 2px; }
+  }
+</style>

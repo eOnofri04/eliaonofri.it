@@ -5,9 +5,13 @@
   "scripts": {
     "dev": "astro dev",
     "build": "astro build",
-    "preview": "astro preview"
+    "preview": "astro preview",
+    "sync:bib": "cp ../docs/CV/bibdesk-database.bib src/data/publications.bib"
   },
   "dependencies": {
+    "@fontsource-variable/source-code-pro": "^5.2.7",
+    "@fontsource-variable/source-sans-3": "^5.2.9",
+    "@fontsource-variable/source-serif-4": "^5.2.9",
     "astro": "^4.16.0"
   }
 }

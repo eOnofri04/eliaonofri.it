@@ -9,7 +9,7 @@ const gallery = defineCollection({
     tags: z.array(z.string()),
     source: z.string(),
     date: z.string(),
-    licence: z.string().default('CC BY 4.0'),
+    licence: z.string().default('CC BY-NC-SA 4.0'),
     filter: z.string(),
   }),
 });

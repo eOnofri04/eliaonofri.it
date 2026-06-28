@@ -21,7 +21,8 @@ Pushing to `main` triggers the GitHub Actions workflow in `.github/workflows/dep
 ## Stack
 
 - **Framework:** Astro (static output)
-- **Fonts:** Source Serif 4, Source Sans 3, Source Code Pro — self-hosted variable TTFs under `public/fonts/`
+- **Fonts:** Source Serif 4, Source Sans 3, Source Code Pro — self-hosted variable woff2 via `@fontsource-variable` (no CDN). Swap a family by changing the import in `BaseLayout.astro` and the matching `--serif`/`--sans`/`--mono` token in `global.css`.
+- **Publications:** rendered at build time from `src/data/publications.bib` (synced from the CV's `bibdesk-database.bib` via `npm run sync:bib`) by the dependency-free parser in `src/lib/`
 - **Styling:** vanilla CSS with design tokens in `src/styles/global.css`
 - **i18n:** English at `/` (default, unprefixed); Italian at `/it/…`
 

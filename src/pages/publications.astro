@@ -1,8 +1,152 @@
 ---
-import ArticleLayout from '@/layouts/ArticleLayout.astro';
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import PubEntry from '@/components/PubEntry.astro';
+import { getSections, getPublications, TOPIC_GROUPS } from '@/lib/bib';
+
+const sections = getSections();
+const total = getPublications().length;
+
+// continuous [n] numbering across sections, in display order
+let n = 0;
+const numbered = sections.map((s) => ({
+  ...s,
+  items: s.items.map((p) => ({ ...p, idx: ++n })),
+}));
 ---
-<ArticleLayout title="Publications" eyebrow="Publications">
-  <p style="color: var(--ink-soft);">
-    Full publication list grouped by topic — coming soon. Will render from the shared <code>.bib</code>.
-  </p>
-</ArticleLayout>
+<BaseLayout
+  title="Publications"
+  description="Publications by Elia Onofri — cryptography, graph theory, numerical modelling, and machine learning."
+>
+  <div class="wrap page-body">
+    <p class="eyebrow">Publications</p>
+    <h1>Publications</h1>
+    <p class="lead">
+      {total} entries, rendered from the same <code>.bib</code> maintained for my CV. Filter by topic, or browse the
+      full list grouped by type. Surname in <strong>bold</strong> marks my contributions.
+    </p>
+
+    <div class="filters" id="pub-filters">
+      <button class="chip active" data-filter="all">All</button>
+      {TOPIC_GROUPS.map((g) => (
+        <button class="chip" data-filter={g.id}>{g.label}</button>
+      ))}
+    </div>
+
+    <div id="pub-list">
+      {numbered.map((s) => (
+        <section class="pub-section" data-section>
+          <h2 class="sec-title">{s.label} <span class="sec-count">{s.items.length}</span></h2>
+          {s.items.map((p) => (
+            <PubEntry
+              idx={p.idx}
+              authorsHtml={p.authorsHtml}
+              title={p.title}
+              venue={p.venue}
+              year={p.year}
+              note={p.note}
+              topics={p.topics}
+              groups={p.groups}
+              links={p.links}
+            />
+          ))}
+        </section>
+      ))}
+    </div>
+    <p class="empty" id="pub-empty" hidden>No publications match that topic.</p>
+  </div>
+</BaseLayout>
+
+<script>
+  const filters = document.getElementById('pub-filters');
+  const empty = document.getElementById('pub-empty');
+  const pubs = Array.from(document.querySelectorAll<HTMLElement>('.pub'));
+  const sections = Array.from(document.querySelectorAll<HTMLElement>('[data-section]'));
+
+  filters?.addEventListener('click', (e) => {
+    const btn = (e.target as HTMLElement).closest<HTMLButtonElement>('button[data-filter]');
+    if (!btn) return;
+    const f = btn.dataset.filter!;
+    filters.querySelectorAll('button').forEach((b) => b.classList.toggle('active', b === btn));
+
+    let shown = 0;
+    pubs.forEach((p) => {
+      const groups = (p.dataset.groups ?? '').split(' ');
+      const match = f === 'all' || groups.includes(f);
+      p.hidden = !match;
+      if (match) shown++;
+    });
+    // hide section headers with no visible entries
+    sections.forEach((s) => {
+      const any = Array.from(s.querySelectorAll<HTMLElement>('.pub')).some((p) => !p.hidden);
+      s.hidden = !any;
+    });
+    if (empty) empty.hidden = shown !== 0;
+  });
+</script>
+
+<style>
+  .eyebrow {
+    font-family: var(--mono);
+    font-size: 0.78rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin: 0 0 6px;
+  }
+  h1 { font-size: clamp(2rem, 4vw, 2.8rem); margin: 0 0 14px; }
+  .lead {
+    color: var(--ink-soft);
+    max-width: 62ch;
+    line-height: 1.6;
+    margin: 0 0 26px;
+  }
+  .lead code {
+    font-family: var(--mono);
+    font-size: 0.85em;
+    background: var(--panel-2);
+    padding: 1px 5px;
+    border-radius: 4px;
+  }
+  .filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 28px;
+  }
+  .chip {
+    font-family: var(--mono);
+    font-size: 0.8rem;
+    color: var(--muted);
+    background: transparent;
+    border: 1px solid var(--rule);
+    border-radius: 20px;
+    padding: 5px 14px;
+    cursor: pointer;
+    transition: color 0.18s, border-color 0.18s, background 0.18s;
+  }
+  .chip:hover { color: var(--ink-soft); border-color: var(--muted); }
+  .chip.active {
+    color: var(--bg);
+    background: var(--teal);
+    border-color: var(--teal);
+  }
+  .pub-section { margin-bottom: 40px; }
+  .sec-title {
+    font-family: var(--serif);
+    font-size: 1.3rem;
+    color: var(--ink);
+    margin: 0 0 6px;
+    padding-bottom: 8px;
+    border-bottom: 2px solid var(--rule);
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+  }
+  .sec-count {
+    font-family: var(--mono);
+    font-size: 0.8rem;
+    color: var(--muted);
+    font-weight: 400;
+  }
+  .empty { color: var(--muted); font-family: var(--mono); font-size: 0.9rem; }
+</style>

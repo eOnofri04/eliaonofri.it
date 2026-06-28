@@ -1,6 +1,14 @@
 ---
 import Header from '@/components/Header.astro';
 import Footer from '@/components/Footer.astro';
+// Self-hosted variable woff2 (no CDN). Swap a family by changing the package
+// here + the matching --serif/--sans/--mono token in global.css.
+import '@fontsource-variable/source-serif-4';
+import '@fontsource-variable/source-serif-4/wght-italic.css';
+import '@fontsource-variable/source-sans-3';
+import '@fontsource-variable/source-sans-3/wght-italic.css';
+import '@fontsource-variable/source-code-pro';
+import '@fontsource-variable/source-code-pro/wght-italic.css';
 import '@/styles/global.css';
 
 interface Props {

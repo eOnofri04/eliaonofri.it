@@ -1,35 +1,118 @@
 ---
-interface Link {
-  label: string;
-  href: string;
-}
+// CV-style publication entry: mono [n], serif authors (Onofri emphasised),
+// italic title, faint venue, topic chips, and links. Author/title/venue arrive
+// as pre-cleaned HTML fragments from src/lib/bib.ts.
+interface Link { label: string; href: string; }
 interface Props {
   idx: string | number;
-  authors: string;
-  boldSurname?: string;
+  authorsHtml: string;
   title: string;
   venue: string;
+  year?: number;
+  note?: string;
+  topics?: string[];
+  groups?: string[];
   links?: Link[];
 }
-const { idx, authors, boldSurname = 'Onofri', title, venue, links = [] } = Astro.props;
-
-function markSurname(raw: string, surname: string) {
-  return raw.replace(
-    new RegExp(`(${surname})`, 'g'),
-    '<b>$1</b>',
-  );
-}
+const { idx, authorsHtml, title, venue, year, note, topics = [], groups = [], links = [] } = Astro.props;
+const pretty = (t: string) => t.replace(/\b\w/g, (c) => c.toUpperCase());
 ---
-<article class="pub">
+<article class="pub" data-groups={groups.join(' ')}>
   <span class="pub-idx">[{idx}]</span>
   <div class="pub-body">
-    <p class="pub-authors" set:html={markSurname(authors, boldSurname)} />
-    <p class="pub-title">{title}</p>
-    <p class="pub-venue">{venue}</p>
-    {links.length > 0 && (
-      <div class="pub-links">
-        {links.map(l => <a class="lnk" href={l.href} target="_blank" rel="noopener">{l.label}</a>)}
+    <p class="pub-authors" set:html={authorsHtml} />
+    <p class="pub-title" set:html={title} />
+    <p class="pub-venue">
+      <span set:html={venue} />{year ? <span class="pub-year"> · {year}</span> : null}
+    </p>
+    {note && <p class="pub-note">{note}</p>}
+    {(topics.length > 0 || links.length > 0) && (
+      <div class="pub-meta">
+        {topics.map((t) => <span class="pub-chip">{pretty(t)}</span>)}
+        {links.map((l) => (
+          <a class="pub-lnk" href={l.href} target="_blank" rel="noopener">{l.label} ↗</a>
+        ))}
       </div>
     )}
   </div>
 </article>
+
+<style>
+  .pub {
+    display: grid;
+    grid-template-columns: 2.6em 1fr;
+    gap: 6px 4px;
+    padding: 14px 0;
+    border-bottom: 1px solid var(--rule-soft);
+  }
+  .pub-idx {
+    font-family: var(--mono);
+    font-size: 0.82rem;
+    color: var(--muted);
+    padding-top: 2px;
+  }
+  .pub-body { min-width: 0; }
+  .pub-authors {
+    font-family: var(--serif);
+    font-size: 0.96rem;
+    color: var(--ink-soft);
+    margin: 0 0 2px;
+    line-height: 1.45;
+  }
+  .pub-authors :global(.me) { font-style: normal; font-weight: 700; color: var(--ink); }
+  .pub-title {
+    font-family: var(--serif);
+    font-style: italic;
+    font-size: 1.02rem;
+    color: var(--ink);
+    margin: 0 0 3px;
+    line-height: 1.4;
+  }
+  .pub-venue {
+    font-size: 0.86rem;
+    color: var(--muted);
+    margin: 0;
+  }
+  .pub-year { font-family: var(--mono); font-size: 0.8rem; }
+  .pub-note {
+    font-family: var(--mono);
+    font-size: 0.76rem;
+    color: var(--muted);
+    margin: 4px 0 0;
+  }
+  .pub-title :global(.pub-flag) {
+    font-family: var(--mono);
+    font-style: normal;
+    font-size: 0.68rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--gold);
+    border: 1px solid var(--gold);
+    border-radius: 4px;
+    padding: 0 5px;
+    margin-left: 6px;
+    vertical-align: 0.1em;
+  }
+  .pub-meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px 10px;
+    margin-top: 8px;
+  }
+  .pub-chip {
+    font-family: var(--mono);
+    font-size: 0.7rem;
+    color: var(--muted);
+    background: var(--panel-2);
+    border: 1px solid var(--rule);
+    border-radius: 20px;
+    padding: 1px 9px;
+  }
+  .pub-lnk {
+    font-family: var(--mono);
+    font-size: 0.76rem;
+    color: var(--teal);
+  }
+  .pub-lnk:hover { text-decoration: underline; }
+</style>
