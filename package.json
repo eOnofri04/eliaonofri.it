@@ -9,9 +9,14 @@
     "sync:bib": "cp ../docs/CV/bibdesk-database.bib src/data/publications.bib"
   },
   "dependencies": {
+    "@astrojs/sitemap": "3.2.1",
     "@fontsource-variable/source-code-pro": "^5.2.7",
     "@fontsource-variable/source-sans-3": "^5.2.9",
     "@fontsource-variable/source-serif-4": "^5.2.9",
-    "astro": "^4.16.0"
+    "astro": "^4.16.0",
+    "d3-force": "^3.0.0"
+  },
+  "devDependencies": {
+    "@types/d3-force": "^3.0.10"
   }
 }

@@ -38,7 +38,7 @@ export const affiliations: Affiliation[] = [
     url: 'https://www.cifris.com',
   },
   {
-    role: 'Affiliated · SIG Intelligence Research Administrator',
+    role: 'Member · Coordinator, SIG Intellect Research',
     org: 'Mensa International | Mensa Italia',
     location: 'Italy',
     color: 'purple',

@@ -139,12 +139,15 @@ export const projects: SwProject[] = [
   },
   {
     name: 'APORIA',
-    tagline: 'Language-model reliability tooling',
+    tagline: 'A geometric analysis of LLM hallucinations',
     blurb:
-      'Research code from ongoing work on language-model reliability. A fuller description is on the way — see the repository.',
-    tags: ['Machine Learning', 'LLMs'],
+      'Companion code for “A Geometric Analysis of Small-sized Language Model Hallucinations”, characterising hallucination through the geometry of model representations.',
+    tags: ['Python', 'Machine Learning', 'LLMs'],
     color: 'purple',
-    links: [{ label: 'code', href: 'https://github.com/eOnofri04/APORIA' }],
+    links: [
+      { label: 'code', href: 'https://github.com/eOnofri04/APORIA' },
+      { label: 'arXiv', href: 'https://arxiv.org/abs/2602.14778' },
+    ],
   },
   {
     name: 'LAR — Linear Algebraic Representation',
@@ -185,7 +188,7 @@ export const projects: SwProject[] = [
     tagline: 'Multi-stratum model of a nano-functionalised releasing capsule',
     blurb:
       'Numerical simulation of a multi-stratum, experiment-driven model for a nano-functionalised drug-releasing capsule.',
-    tags: ['Numerical modelling', 'Drug delivery', 'Computational Biology'],
+    tags: ['MATLAB', 'Numerical modelling', 'Drug delivery', 'Computational Biology'],
     color: 'terra',
     links: [
       { label: 'code', href: 'https://github.com/eOnofri04/NRMc' },

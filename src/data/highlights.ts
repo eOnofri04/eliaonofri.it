@@ -12,7 +12,7 @@ export interface Highlight {
 export const highlights: Highlight[] = [
   {
     kind: 'Talk',
-    date: '09 Jul 2026',
+    date: 'Jul 2026',
     title: 'A Geometric Analysis of Small-sized LLM Hallucinations',
     detail: 'ICML 2026 · Seoul, South Korea',
     color: 'teal',
@@ -36,7 +36,7 @@ export const highlights: Highlight[] = [
     kind: 'Primer',
     date: '14 May 2026',
     title: 'Git: a 40-minute primer for researchers',
-    detail: 'Slides and notes available',
+    detail: 'CRI-Lab · KAUST',
     color: 'teal',
   },
 ];

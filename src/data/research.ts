@@ -98,7 +98,7 @@ export interface Talk {
 }
 
 export const talks: Talk[] = [
-  { date: '2026-09-07', title: 'A Geometric Analysis of Small-sized Language Model Hallucinations', event: 'ICML 2026', location: 'Seoul, South Korea', kind: 'Talk' },
+  { date: '2026-07-07', title: 'A Geometric Analysis of Small-sized Language Model Hallucinations', event: 'ICML 2026', location: 'Seoul, South Korea', kind: 'Talk' },
   { date: '2026-05-14', title: 'Git: a 40-minute primer for researchers', event: 'CRI-Lab, KAUST', location: 'Saudi Arabia', kind: 'Seminar' },
   { date: '2026-04-22', title: 'Quantum & Post-Quantum Cryptography', event: 'CRI-Lab Quantum Masterclass, KAUST', location: 'Saudi Arabia', kind: 'Invited talk' },
   { date: '2026-04-14', title: 'I-(OT)²', event: 'Applied Cryptography course, KAUST', location: 'Saudi Arabia', kind: 'Invited lesson' },

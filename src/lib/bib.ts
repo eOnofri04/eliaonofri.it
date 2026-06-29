@@ -17,6 +17,7 @@ export interface Publication {
   pubType: PubType;
   topics: string[];      // keyword topics (type/flags removed)
   groups: string[];      // filter-group ids this entry belongs to
+  authors: Name[];       // structured co-author list
   authorsHtml: string;   // formatted, "E. Onofri" emphasised
   title: string;         // HTML fragment
   venue: string;         // HTML fragment
@@ -117,6 +118,8 @@ function parseBib(src: string): RawEntry[] {
 }
 
 // ── names ────────────────────────────────────────────────────────────────
+export interface Name { display: string; family: string; given: string; slug: string; isElia: boolean; }
+
 function initials(given: string): string {
   return given
     .split(/\s+/)
@@ -125,9 +128,15 @@ function initials(given: string): string {
     .join(' ');
 }
 
-function formatName(raw: string): string {
-  let family: string, given: string;
+/** Stable, accent-folded key for matching against the links dictionary. */
+export function slugifyName(s: string): string {
+  return s.normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+}
+
+function parseName(raw: string): Name {
   const r = raw.trim();
+  let family: string, given: string;
   if (r.includes(',')) {
     const idx = r.indexOf(',');
     family = r.slice(0, idx).trim();
@@ -139,16 +148,26 @@ function formatName(raw: string): string {
   }
   family = latexToText(family);
   given = latexToText(given);
+  const display = (given ? `${given} ` : '') + family;
   const isElia = family === 'Onofri' && /^E/.test(given);
-  const text = (given ? `${initials(given)} ` : '') + family;
-  return isElia ? `<em class="me">${text}</em>` : text;
+  return { display, family, given, slug: slugifyName(display), isElia };
 }
 
-function formatAuthors(raw: string): string {
-  const names = raw.split(/\s+and\s+/).map(formatName);
-  if (names.length === 1) return names[0];
-  if (names.length === 2) return `${names[0]} and ${names[1]}`;
-  return `${names.slice(0, -1).join(', ')}, and ${names[names.length - 1]}`;
+function namesOf(raw: string): Name[] {
+  return raw.split(/\s+and\s+/).map((s) => s.trim()).filter(Boolean).map(parseName);
+}
+
+function citeName(n: Name): string {
+  const text = (n.given ? `${initials(n.given)} ` : '') + n.family;
+  return n.isElia ? `<em class="me">${text}</em>` : text;
+}
+
+function formatAuthors(names: Name[]): string {
+  const out = names.map(citeName);
+  if (out.length === 0) return '';
+  if (out.length === 1) return out[0];
+  if (out.length === 2) return `${out[0]} and ${out[1]}`;
+  return `${out.slice(0, -1).join(', ')}, and ${out[out.length - 1]}`;
 }
 
 // ── per-entry derivations ──────────────────────────────────────────────────
@@ -216,6 +235,7 @@ export function getPublications(): Publication[] {
       .filter((g) => g.keys.some((key) => topics.includes(key)))
       .map((g) => g.id);
     const authorSrc = pubType === 'editor' ? (e.fields.editor ?? '') : (e.fields.author ?? '');
+    const authors = namesOf(authorSrc);
     const toappear = keywords.includes('toappear');
     return {
       key: e.key,
@@ -223,7 +243,8 @@ export function getPublications(): Publication[] {
       pubType,
       topics,
       groups,
-      authorsHtml: formatAuthors(authorSrc),
+      authors,
+      authorsHtml: formatAuthors(authors),
       title: latexToHtml(e.fields.title) + (toappear ? ' <span class="pub-flag">to appear</span>' : ''),
       venue: deriveVenue(e),
       year: parseInt(e.fields.year ?? '0', 10) || 0,
@@ -235,6 +256,24 @@ export function getPublications(): Publication[] {
   pubs.sort((a, b) => b.year - a.year || b.month - a.month);
   cache = pubs;
   return pubs;
+}
+
+export interface Collaborator { slug: string; name: string; count: number; }
+
+/** Distinct co-authors (Elia excluded), with shared-paper counts, most first. */
+export function getCollaborators(): Collaborator[] {
+  const m = new Map<string, Collaborator>();
+  for (const p of getPublications()) {
+    const seen = new Set<string>();
+    for (const a of p.authors) {
+      if (a.isElia || seen.has(a.slug)) continue;
+      seen.add(a.slug);
+      const e = m.get(a.slug) ?? { slug: a.slug, name: a.display, count: 0 };
+      e.count++;
+      m.set(a.slug, e);
+    }
+  }
+  return [...m.values()].sort((a, b) => b.count - a.count || a.name.localeCompare(b.name));
 }
 
 /** Group publications by CV section, preserving section order; empties dropped. */

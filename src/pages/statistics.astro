@@ -1,0 +1,384 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import { getPublications, getCollaborators } from '@/lib/bib';
+import { talks } from '@/data/research';
+import collaborators from '@/data/collaborators.json';
+
+type LinkInfo = { name: string; url?: string; affiliation?: string };
+const links = collaborators as Record<string, LinkInfo>;
+
+const pubs = getPublications();
+const collabs = getCollaborators();
+const years = pubs.map((p) => p.year).filter((y) => y > 0);
+const yearMin = Math.min(...years);
+const yearMax = Math.max(...years);
+
+const stats = [
+  { label: 'Publications', value: String(pubs.length) },
+  { label: 'Journal articles', value: String(pubs.filter((p) => p.pubType === 'journal').length) },
+  { label: 'Co-authors', value: String(collabs.length) },
+  { label: 'Talks & seminars', value: String(talks.length) },
+  { label: 'Years active', value: `${yearMin}–${yearMax}` },
+];
+
+// ── build the co-authorship graph (nodes + weighted edges) ──
+interface GNode { id: string; name: string; count: number; elia: boolean; url?: string; }
+const nodeMap = new Map<string, GNode>();
+nodeMap.set('__elia', { id: '__elia', name: 'Elia Onofri', count: pubs.length, elia: true });
+const linkMap = new Map<string, number>();
+
+for (const p of pubs) {
+  const ids = ['__elia'];
+  for (const a of p.authors) {
+    if (a.isElia) continue;
+    if (!nodeMap.has(a.slug)) {
+      const info = links[a.slug];
+      nodeMap.set(a.slug, { id: a.slug, name: a.display, count: 0, elia: false, url: info?.url || undefined });
+    }
+    nodeMap.get(a.slug)!.count++;
+    ids.push(a.slug);
+  }
+  for (let i = 0; i < ids.length; i++)
+    for (let j = i + 1; j < ids.length; j++) {
+      const key = [ids[i], ids[j]].sort().join('::');
+      linkMap.set(key, (linkMap.get(key) || 0) + 1);
+    }
+}
+const graph = {
+  nodes: [...nodeMap.values()],
+  links: [...linkMap.entries()].map(([k, weight]) => {
+    const [source, target] = k.split('::');
+    return { source, target, weight };
+  }),
+};
+
+const top = collabs.slice(0, 10).map((c) => ({ ...c, url: links[c.slug]?.url, aff: links[c.slug]?.affiliation }));
+const linkedCount = collabs.filter((c) => links[c.slug]?.url).length;
+---
+<BaseLayout
+  title="Statistics"
+  description="Publication metrics and an interactive co-authorship network for Elia Onofri."
+>
+  <div class="wrap page-body">
+    <p class="eyebrow">Statistics</p>
+    <h1>By the numbers</h1>
+    <p class="lead">
+      A look at the shape of my research output, built from the same <a href="/publications">publication</a> data.
+      Citation metrics (h-index &amp; co.) are coming via OpenAlex.
+    </p>
+
+    <div class="stat-grid">
+      {stats.map((s) => (
+        <div class="stat">
+          <span class="stat-value">{s.value}</span>
+          <span class="stat-label">{s.label}</span>
+        </div>
+      ))}
+    </div>
+
+    <section class="block">
+      <h2 class="sec-title">Collaboration network</h2>
+      <p class="block-intro">
+        Every co-author, sized by shared papers and linked when they appear together. Drag a node, hover to focus,
+        click to open a profile where available.
+      </p>
+
+      <figure class="graph-figure">
+        <div id="graph" class="graph" role="img"
+          aria-label={`Co-authorship network: Elia Onofri and ${collabs.length} co-authors.`}></div>
+        <figcaption class="graph-legend">
+          <span class="lg lg-me">Elia</span>
+          <span class="lg lg-co">co-author (size = shared papers)</span>
+          <span class="lg lg-link">click-through where a profile is on file</span>
+        </figcaption>
+      </figure>
+
+      <!-- no-JS / accessible fallback + most-frequent collaborators -->
+      <div class="top">
+        <h3 class="top-head">Most frequent co-authors</h3>
+        <ol class="top-list">
+          {top.map((c) => (
+            <li>
+              {c.url
+                ? <a href={c.url} target="_blank" rel="noopener">{c.name}</a>
+                : <span>{c.name}</span>}
+              <span class="top-count">{c.count} paper{c.count > 1 ? 's' : ''}</span>
+              {c.aff && <span class="top-aff">{c.aff}</span>}
+            </li>
+          ))}
+        </ol>
+      </div>
+    </section>
+  </div>
+
+  <script type="application/json" id="graph-data" set:html={JSON.stringify(graph)}></script>
+</BaseLayout>
+
+<script>
+  import { forceSimulation, forceManyBody, forceLink, forceCenter, forceCollide, forceX, forceY } from 'd3-force';
+
+  interface GNode { id: string; name: string; count: number; elia: boolean; url?: string; x?: number; y?: number; fx?: number | null; fy?: number | null; }
+  interface GLink { source: any; target: any; weight: number; }
+
+  const dataEl = document.getElementById('graph-data');
+  const host = document.getElementById('graph');
+  if (dataEl && host) {
+    const graph = JSON.parse(dataEl.textContent || '{"nodes":[],"links":[]}') as { nodes: GNode[]; links: GLink[] };
+    const SVGNS = 'http://www.w3.org/2000/svg';
+
+    let width = host.clientWidth || 720;
+    let height = Math.max(420, Math.min(620, Math.round(width * 0.78)));
+
+    const svg = document.createElementNS(SVGNS, 'svg');
+    svg.setAttribute('width', '100%');
+    svg.setAttribute('height', String(height));
+    svg.setAttribute('viewBox', `0 0 ${width} ${height}`);
+    host.appendChild(svg);
+
+    const gLinks = document.createElementNS(SVGNS, 'g');
+    const gNodes = document.createElementNS(SVGNS, 'g');
+    svg.appendChild(gLinks);
+    svg.appendChild(gNodes);
+
+    const radius = (n: GNode) => (n.elia ? 13 : 4 + Math.sqrt(n.count) * 2.4);
+
+    // adjacency for hover focus
+    const adj = new Map<string, Set<string>>();
+    graph.nodes.forEach((n) => adj.set(n.id, new Set([n.id])));
+    graph.links.forEach((l) => {
+      const s = typeof l.source === 'object' ? l.source.id : l.source;
+      const t = typeof l.target === 'object' ? l.target.id : l.target;
+      adj.get(s)?.add(t);
+      adj.get(t)?.add(s);
+    });
+
+    const lineEls = graph.links.map((l) => {
+      const ln = document.createElementNS(SVGNS, 'line');
+      ln.setAttribute('class', 'g-link');
+      ln.setAttribute('stroke-width', String(Math.min(3, 0.6 + l.weight * 0.5)));
+      gLinks.appendChild(ln);
+      return ln;
+    });
+
+    const nodeEls = graph.nodes.map((n) => {
+      const g = document.createElementNS(SVGNS, 'g');
+      g.setAttribute('class', 'g-node' + (n.elia ? ' is-me' : '') + (n.url ? ' has-link' : ''));
+      g.setAttribute('tabindex', '0');
+      const c = document.createElementNS(SVGNS, 'circle');
+      c.setAttribute('r', String(radius(n)));
+      g.appendChild(c);
+      const label = document.createElementNS(SVGNS, 'text');
+      label.setAttribute('class', 'g-label');
+      label.setAttribute('dy', '-0.7em');
+      label.textContent = n.name;
+      if (!n.elia && n.count < 3) label.style.opacity = '0'; // show big ones by default
+      g.appendChild(label);
+      const native = document.createElementNS(SVGNS, 'title');
+      native.textContent = `${n.name} — ${n.count} paper${n.count > 1 ? 's' : ''}`;
+      g.appendChild(native);
+      gNodes.appendChild(g);
+
+      const open = () => { if (n.url) window.open(n.url, '_blank', 'noopener'); };
+      g.addEventListener('click', open);
+      g.addEventListener('keydown', (e) => { if ((e as KeyboardEvent).key === 'Enter') open(); });
+      g.addEventListener('pointerenter', () => focus(n.id));
+      g.addEventListener('pointerleave', () => focus(null));
+      g.addEventListener('focus', () => focus(n.id));
+      g.addEventListener('blur', () => focus(null));
+      return g;
+    });
+
+    function focus(id: string | null) {
+      const near = id ? adj.get(id) : null;
+      nodeEls.forEach((el, i) => {
+        const nid = graph.nodes[i].id;
+        const on = !near || near.has(nid);
+        el.classList.toggle('dim', !on);
+        const lbl = el.querySelector('.g-label') as SVGTextElement | null;
+        if (lbl && !graph.nodes[i].elia && graph.nodes[i].count < 3) lbl.style.opacity = (near && near.has(nid)) ? '1' : '0';
+      });
+      lineEls.forEach((el, i) => {
+        const l = graph.links[i];
+        const s = typeof l.source === 'object' ? l.source.id : l.source;
+        const t = typeof l.target === 'object' ? l.target.id : l.target;
+        el.classList.toggle('dim', !!id && s !== id && t !== id);
+      });
+    }
+
+    const me = graph.nodes.find((n) => n.elia)!;
+    me.fx = width / 2; me.fy = height / 2;
+
+    const sim = forceSimulation<GNode>(graph.nodes)
+      .force('link', forceLink<GNode, GLink>(graph.links).id((d) => d.id).distance((l) => 60 / Math.sqrt(l.weight)).strength(0.25))
+      .force('charge', forceManyBody().strength(-95))
+      .force('collide', forceCollide<GNode>().radius((n) => radius(n) + 3))
+      .force('x', forceX(width / 2).strength(0.04))
+      .force('y', forceY(height / 2).strength(0.04))
+      .force('center', forceCenter(width / 2, height / 2))
+      .on('tick', tick);
+
+    function tick() {
+      const pad = 14;
+      graph.nodes.forEach((n) => {
+        n.x = Math.max(pad, Math.min(width - pad, n.x ?? width / 2));
+        n.y = Math.max(pad, Math.min(height - pad, n.y ?? height / 2));
+      });
+      lineEls.forEach((el, i) => {
+        const l = graph.links[i];
+        el.setAttribute('x1', String((l.source as GNode).x));
+        el.setAttribute('y1', String((l.source as GNode).y));
+        el.setAttribute('x2', String((l.target as GNode).x));
+        el.setAttribute('y2', String((l.target as GNode).y));
+      });
+      nodeEls.forEach((el, i) => {
+        const n = graph.nodes[i];
+        el.setAttribute('transform', `translate(${n.x},${n.y})`);
+      });
+    }
+
+    // drag
+    let dragging: GNode | null = null;
+    function clientToSvg(ev: PointerEvent) {
+      const r = svg.getBoundingClientRect();
+      return { x: ((ev.clientX - r.left) / r.width) * width, y: ((ev.clientY - r.top) / r.height) * height };
+    }
+    nodeEls.forEach((el, i) => {
+      el.addEventListener('pointerdown', (ev) => {
+        ev.preventDefault();
+        dragging = graph.nodes[i];
+        sim.alphaTarget(0.2).restart();
+        el.setPointerCapture((ev as PointerEvent).pointerId);
+      });
+      el.addEventListener('pointermove', (ev) => {
+        if (dragging !== graph.nodes[i]) return;
+        const p = clientToSvg(ev as PointerEvent);
+        dragging.fx = p.x; dragging.fy = p.y;
+      });
+      const end = () => {
+        if (dragging === graph.nodes[i]) {
+          if (!dragging.elia) { dragging.fx = null; dragging.fy = null; }
+          dragging = null;
+          sim.alphaTarget(0);
+        }
+      };
+      el.addEventListener('pointerup', end);
+      el.addEventListener('pointercancel', end);
+    });
+
+    window.addEventListener('resize', () => {
+      const w = host.clientWidth || width;
+      if (Math.abs(w - width) < 2) return;
+      width = w;
+      height = Math.max(420, Math.min(620, Math.round(width * 0.78)));
+      svg.setAttribute('viewBox', `0 0 ${width} ${height}`);
+      svg.setAttribute('height', String(height));
+      me.fx = width / 2; me.fy = height / 2;
+      sim.force('center', forceCenter(width / 2, height / 2));
+      sim.force('x', forceX(width / 2).strength(0.04));
+      sim.force('y', forceY(height / 2).strength(0.04));
+      sim.alpha(0.4).restart();
+    });
+  }
+</script>
+
+<style>
+  .eyebrow {
+    font-family: var(--mono);
+    font-size: 0.78rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin: 0 0 6px;
+  }
+  h1 { font-size: clamp(2rem, 4vw, 2.8rem); margin: 0 0 14px; }
+  .lead { color: var(--ink-soft); max-width: 62ch; line-height: 1.6; margin: 0 0 28px; }
+  .lead a { color: var(--teal); }
+  .lead a:hover { text-decoration: underline; }
+
+  .stat-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 12px;
+    margin-bottom: 12px;
+  }
+  .stat {
+    background: var(--panel);
+    border: 1px solid var(--rule);
+    border-radius: 12px;
+    padding: 16px 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .stat-value { font-family: var(--serif); font-size: 1.7rem; font-weight: 700; color: var(--ink); line-height: 1; }
+  .stat-label { font-family: var(--mono); font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); }
+
+  .block { margin-top: 46px; }
+  .sec-title {
+    font-family: var(--serif);
+    font-size: 1.5rem;
+    color: var(--ink);
+    margin: 0 0 10px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid var(--rule);
+  }
+  .block-intro { color: var(--muted); margin: 0 0 18px; max-width: 62ch; }
+
+  .graph-figure { margin: 0; }
+  .graph {
+    width: 100%;
+    background: radial-gradient(circle at 50% 45%, var(--panel) 0%, var(--bg-2) 100%);
+    border: 1px solid var(--rule);
+    border-radius: 14px;
+    overflow: hidden;
+    touch-action: none;
+  }
+  .graph-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    margin-top: 10px;
+    font-family: var(--mono);
+    font-size: 0.74rem;
+    color: var(--muted);
+  }
+  .lg { display: inline-flex; align-items: center; gap: 6px; }
+  .lg::before { content: ''; width: 10px; height: 10px; border-radius: 50%; }
+  .lg-me::before { background: var(--teal); }
+  .lg-co::before { background: var(--terra); }
+  .lg-link::before { background: transparent; border: 1px solid var(--gold); }
+
+  /* graph elements (global — injected by the client script) */
+  :global(.g-link) { stroke: var(--rule); stroke-opacity: 0.7; transition: stroke-opacity 0.15s; }
+  :global(.g-link.dim) { stroke-opacity: 0.08; }
+  :global(.g-node) { cursor: grab; }
+  :global(.g-node circle) { fill: var(--terra); stroke: var(--bg); stroke-width: 1.5; transition: opacity 0.15s; }
+  :global(.g-node.is-me circle) { fill: var(--teal); stroke-width: 2; }
+  :global(.g-node.has-link circle) { stroke: var(--gold); stroke-width: 1.5; }
+  :global(.g-node.dim) { opacity: 0.18; }
+  :global(.g-node:focus) { outline: none; }
+  :global(.g-node:focus circle) { stroke: var(--gold); stroke-width: 2.5; }
+  :global(.g-label) {
+    font-family: var(--mono);
+    font-size: 10px;
+    fill: var(--ink-soft);
+    text-anchor: middle;
+    pointer-events: none;
+    transition: opacity 0.15s;
+  }
+  :global(.g-node.is-me .g-label) { font-size: 12px; fill: var(--ink); font-weight: 700; }
+
+  .top { margin-top: 30px; }
+  .top-head { font-family: var(--serif); font-size: 1.15rem; color: var(--ink); margin: 0 0 12px; }
+  .top-list { margin: 0; padding-left: 1.4em; display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px 24px; }
+  .top-list li { color: var(--ink-soft); }
+  .top-list a { color: var(--ink); }
+  .top-list a:hover { color: var(--teal); }
+  .top-count { font-family: var(--mono); font-size: 0.74rem; color: var(--muted); margin-left: 8px; }
+  .top-aff { font-family: var(--mono); font-size: 0.72rem; color: var(--muted); display: block; }
+
+  @media (max-width: 760px) {
+    .stat-grid { grid-template-columns: repeat(2, 1fr); }
+    .top-list { grid-template-columns: 1fr; }
+  }
+</style>
