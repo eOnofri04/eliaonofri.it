@@ -1,8 +1,164 @@
 ---
-import ArticleLayout from '@/layouts/ArticleLayout.astro';
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import Chip from '@/components/Chip.astro';
+import { toolbox, projects, githubUrl } from '@/data/software';
 ---
-<ArticleLayout title="Software" eyebrow="Software">
-  <p style="color: var(--ink-soft);">
-    Repositories and tools — coming soon.
-  </p>
-</ArticleLayout>
+<BaseLayout
+  title="Software"
+  description="Software, research tools, and the toolbox of Elia Onofri — cryptography, graph theory, numerical modelling, and HPC."
+>
+  <div class="wrap page-body">
+    <p class="eyebrow">Software</p>
+    <h1>Software</h1>
+    <p class="lead">
+      Research code spanning cryptography, graph theory, computational topology, numerical modelling, and
+      computational biology — plus the tools I build and teach with. Most code lives on
+      <a href={githubUrl} target="_blank" rel="noopener">GitHub</a>.
+    </p>
+    <a class="gh-cta" href={githubUrl} target="_blank" rel="noopener">github.com/eOnofri04 ↗</a>
+
+    <!-- ── Toolbox ── -->
+    <section class="block">
+      <h2 class="sec-title">Toolbox</h2>
+      <div class="tool-rows">
+        {toolbox.map((row) => (
+          <div class="tool-row">
+            <span class="tool-label">{row.label}</span>
+            <div class="tool-chips">
+              {row.items.map((it) => <Chip color={row.color}>{it}</Chip>)}
+            </div>
+          </div>
+        ))}
+      </div>
+    </section>
+
+    <!-- ── Projects ── -->
+    <section class="block">
+      <h2 class="sec-title">Projects &amp; tools <span class="sec-count">{projects.length}</span></h2>
+      <div class="sw-grid">
+        {projects.map((p) => (
+          <article class={`sw sw--${p.color}`}>
+            <h3 class="sw-name">{p.name}</h3>
+            <p class="sw-tagline">{p.tagline}</p>
+            <p class="sw-blurb">{p.blurb}</p>
+            <div class="sw-foot">
+              <div class="sw-tags">
+                {p.tags.map((t) => <Chip color={p.color}>{t}</Chip>)}
+              </div>
+              <div class="sw-links">
+                {p.links.map((l) => (
+                  l.soon
+                    ? <span class="sw-soon">{l.label} <em>soon</em></span>
+                    : <a href={l.href} target={l.href.startsWith('/') ? undefined : '_blank'} rel="noopener">{l.label} ↗</a>
+                ))}
+              </div>
+            </div>
+          </article>
+        ))}
+      </div>
+    </section>
+  </div>
+</BaseLayout>
+
+<style>
+  .eyebrow {
+    font-family: var(--mono);
+    font-size: 0.78rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin: 0 0 6px;
+  }
+  h1 { font-size: clamp(2rem, 4vw, 2.8rem); margin: 0 0 14px; }
+  .lead { color: var(--ink-soft); max-width: 64ch; line-height: 1.6; margin: 0 0 16px; }
+  .lead a { color: var(--teal); }
+  .lead a:hover { text-decoration: underline; }
+  .gh-cta {
+    display: inline-block;
+    font-family: var(--mono);
+    font-size: 0.84rem;
+    color: var(--ink);
+    border: 1px solid var(--rule);
+    border-radius: 8px;
+    padding: 8px 15px;
+    transition: border-color 0.18s, background 0.18s;
+  }
+  .gh-cta:hover { border-color: var(--teal); background: var(--teal-tint); }
+
+  .block { margin-top: 46px; }
+  .sec-title {
+    font-family: var(--serif);
+    font-size: 1.5rem;
+    color: var(--ink);
+    margin: 0 0 20px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid var(--rule);
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+  }
+  .sec-count { font-family: var(--mono); font-size: 0.82rem; color: var(--muted); }
+
+  /* toolbox */
+  .tool-rows { display: grid; gap: 18px; }
+  .tool-row {
+    display: grid;
+    grid-template-columns: 14em 1fr;
+    gap: 6px 18px;
+    align-items: start;
+  }
+  .tool-label {
+    font-family: var(--mono);
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--muted);
+    padding-top: 6px;
+  }
+  .tool-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+
+  /* projects */
+  .sw-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+  }
+  .sw {
+    background: var(--panel);
+    border: 1px solid var(--rule);
+    border-left: 3px solid var(--teal);
+    border-radius: 12px;
+    padding: 18px 20px;
+    display: flex;
+    flex-direction: column;
+  }
+  .sw--teal { border-left-color: var(--teal); }
+  .sw--terra { border-left-color: var(--terra); }
+  .sw--gold { border-left-color: var(--gold); }
+  .sw--purple { border-left-color: var(--purple); }
+  .sw-name { font-family: var(--mono); font-size: 0.98rem; font-weight: 600; color: var(--ink); margin: 0; }
+  .sw-tagline { font-family: var(--serif); font-style: italic; font-size: 1.02rem; color: var(--ink-soft); margin: 3px 0 10px; line-height: 1.35; }
+  .sw-blurb { font-size: 0.9rem; color: var(--ink-soft); line-height: 1.55; margin: 0 0 14px; }
+  .sw-foot { margin-top: auto; display: flex; flex-direction: column; gap: 12px; }
+  .sw-tags { display: flex; flex-wrap: wrap; gap: 6px; }
+  .sw-links { display: flex; flex-wrap: wrap; gap: 14px; }
+  .sw-links a { font-family: var(--mono); font-size: 0.78rem; color: var(--teal); }
+  .sw-links a:hover { text-decoration: underline; }
+  .sw-soon { font-family: var(--mono); font-size: 0.78rem; color: var(--muted); }
+  .sw-soon em {
+    font-style: normal;
+    font-size: 0.64rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    border: 1px solid var(--rule);
+    border-radius: 4px;
+    padding: 0 4px;
+    margin-left: 2px;
+  }
+
+  @media (max-width: 760px) {
+    .tool-row { grid-template-columns: 1fr; gap: 6px; }
+    .tool-label { padding-top: 0; }
+    .sw-grid { grid-template-columns: 1fr; }
+  }
+</style>

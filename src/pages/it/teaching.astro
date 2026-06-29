@@ -1,15 +1,15 @@
 ---
 import ArticleLayout from '@/layouts/ArticleLayout.astro';
 import LangLink from '@/components/LangLink.astro';
+import TeachingContent from '@/components/TeachingContent.astro';
 ---
 <ArticleLayout
   title="Didattica"
   eyebrow="Didattica"
+  description="Didattica, didattica integrativa, tutoraggio e studenti seguiti — Elia Onofri."
   lang="it"
   langLink={{ href: '/teaching', lang: 'en' }}
 >
   <LangLink href="/teaching" lang="en" />
-  <p style="color: var(--ink-soft); margin-top: 24px;">
-    Pagina didattica — in arrivo.
-  </p>
+  <TeachingContent lang="it" />
 </ArticleLayout>
