@@ -3,6 +3,7 @@ import BaseLayout from '@/layouts/BaseLayout.astro';
 import { getPublications, getCollaborators } from '@/lib/bib';
 import { talks } from '@/data/research';
 import collaborators from '@/data/collaborators.json';
+import metrics from '@/data/metrics.json';
 
 type LinkInfo = { name: string; url?: string; affiliation?: string };
 const links = collaborators as Record<string, LinkInfo>;
@@ -54,6 +55,14 @@ const graph = {
 
 const top = collabs.slice(0, 10).map((c) => ({ ...c, url: links[c.slug]?.url, aff: links[c.slug]?.affiliation }));
 const linkedCount = collabs.filter((c) => links[c.slug]?.url).length;
+
+const impact = [
+  { label: 'Citations', value: String(metrics.citations) },
+  { label: 'h-index', value: String(metrics.hIndex) },
+  { label: 'i10-index', value: String(metrics.i10Index) },
+  { label: 'Indexed works', value: String(metrics.worksMatched) },
+];
+const maxYearCites = Math.max(1, ...metrics.perYear.map((p) => p.citations));
 ---
 <BaseLayout
   title="Statistics"
@@ -75,6 +84,35 @@ const linkedCount = collabs.filter((c) => links[c.slug]?.url).length;
         </div>
       ))}
     </div>
+
+    <section class="block">
+      <h2 class="sec-title">Citation impact</h2>
+      <p class="block-intro">
+        Citations to my indexed works via <a href="https://openalex.org" target="_blank" rel="noopener">OpenAlex</a>,
+        anchored to the listed DOIs ({metrics.worksMatched} of {metrics.doisQueried} indexed). Author-profile metrics
+        elsewhere can conflate distinct “E. Onofri” authors, so these count only my own works. Updated {metrics.updated}.
+      </p>
+      <div class="impact-grid">
+        {impact.map((s) => (
+          <div class="stat">
+            <span class="stat-value">{s.value}</span>
+            <span class="stat-label">{s.label}</span>
+          </div>
+        ))}
+      </div>
+      <div class="spark">
+        <p class="spark-title">Citations per year</p>
+        <div class="bars">
+          {metrics.perYear.map((p) => (
+            <div class="bar-col" title={`${p.year}: ${p.citations} citations`}>
+              <span class="bar-val">{p.citations}</span>
+              <div class="bar" style={`height:${Math.round((p.citations / maxYearCites) * 100)}%`}></div>
+              <span class="bar-year">{String(p.year).slice(2)}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
 
     <section class="block">
       <h2 class="sec-title">Collaboration network</h2>
@@ -313,6 +351,46 @@ const linkedCount = collabs.filter((c) => links[c.slug]?.url).length;
   .stat-value { font-family: var(--serif); font-size: 1.7rem; font-weight: 700; color: var(--ink); line-height: 1; }
   .stat-label { font-family: var(--mono); font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); }
 
+  .impact-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    margin-bottom: 26px;
+  }
+  .spark { max-width: 460px; }
+  .spark-title {
+    font-family: var(--mono);
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--muted);
+    margin: 0 0 10px;
+  }
+  .bars {
+    display: flex;
+    align-items: flex-end;
+    gap: 10px;
+    height: 96px;
+  }
+  .bar-col {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-end;
+    height: 100%;
+    gap: 4px;
+  }
+  .bar {
+    width: 100%;
+    max-width: 34px;
+    min-height: 3px;
+    background: linear-gradient(var(--teal), color-mix(in srgb, var(--teal) 55%, transparent));
+    border-radius: 4px 4px 0 0;
+  }
+  .bar-val { font-family: var(--mono); font-size: 0.68rem; color: var(--muted); }
+  .bar-year { font-family: var(--mono); font-size: 0.72rem; color: var(--muted); }
+
   .block { margin-top: 46px; }
   .sec-title {
     font-family: var(--serif);
@@ -379,6 +457,7 @@ const linkedCount = collabs.filter((c) => links[c.slug]?.url).length;
 
   @media (max-width: 760px) {
     .stat-grid { grid-template-columns: repeat(2, 1fr); }
+    .impact-grid { grid-template-columns: repeat(2, 1fr); }
     .top-list { grid-template-columns: 1fr; }
   }
 </style>

@@ -4,6 +4,9 @@ on:
   push:
     branches: [main]
   workflow_dispatch:
+  schedule:
+    # Weekly refresh so OpenAlex citation metrics stay current without a push.
+    - cron: '30 5 * * 1'
 
 permissions:
   contents: read
@@ -24,6 +27,9 @@ jobs:
           node-version: 20
           cache: npm
       - run: npm ci
+      # Refresh citation metrics from OpenAlex; on failure the script keeps the
+      # committed metrics.json (exit 0), so the build never breaks offline.
+      - run: npm run metrics
       - run: npm run build
       - uses: actions/upload-pages-artifact@v3
         with:

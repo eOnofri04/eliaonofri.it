@@ -6,7 +6,8 @@
     "dev": "astro dev",
     "build": "astro build",
     "preview": "astro preview",
-    "sync:bib": "cp ../docs/CV/bibdesk-database.bib src/data/publications.bib"
+    "sync:bib": "cp ../docs/CV/bibdesk-database.bib src/data/publications.bib",
+    "metrics": "node scripts/fetch-metrics.mjs"
   },
   "dependencies": {
     "@astrojs/sitemap": "3.2.1",
