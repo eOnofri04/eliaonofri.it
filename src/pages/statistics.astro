@@ -324,7 +324,7 @@ const maxYearCites = Math.max(1, ...metrics.perYear.map((p) => p.citations));
 
     const sim = forceSimulation<GNode>(graph.nodes)
       .force('link', forceLink<GNode, GLink>(graph.links).id((d) => d.id).distance((l) => 60 / Math.sqrt(l.weight)).strength(0.25))
-      .force('charge', forceManyBody().strength(-95))
+      .force('charge', forceManyBody().strength(-160))
       .force('collide', forceCollide<GNode>().radius((n) => radius(n) + 3))
       .force('x', forceX(width / 2).strength(0.04))
       .force('y', forceY(height / 2).strength(0.04))
