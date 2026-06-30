@@ -5,8 +5,18 @@ import { talks } from '@/data/research';
 import collaborators from '@/data/collaborators.json';
 import metrics from '@/data/metrics.json';
 
-type LinkInfo = { name: string; url?: string; affiliation?: string };
+type LinkInfo = { name: string; url?: string; affiliation?: string; topic?: string };
 const links = collaborators as Record<string, LinkInfo>;
+
+// Topic palette for the graph; ids match the `topic` field in collaborators.json.
+const TOPICS: { id: string; label: string }[] = [
+  { id: 'security',  label: 'Cybersecurity & cryptography' },
+  { id: 'numerical', label: 'Numerical modelling' },
+  { id: 'biology',   label: 'Computational biology' },
+  { id: 'topology',  label: 'Computational topology' },
+  { id: 'graph',     label: 'Graph theory & networks' },
+  { id: 'ml',        label: 'Machine learning & AI' },
+];
 
 const pubs = getPublications();
 const collabs = getCollaborators();
@@ -23,7 +33,7 @@ const stats = [
 ];
 
 // ── build the co-authorship graph (nodes + weighted edges) ──
-interface GNode { id: string; name: string; count: number; elia: boolean; url?: string; }
+interface GNode { id: string; name: string; count: number; elia: boolean; url?: string; topic?: string; }
 const nodeMap = new Map<string, GNode>();
 nodeMap.set('__elia', { id: '__elia', name: 'Elia Onofri', count: pubs.length, elia: true });
 const linkMap = new Map<string, number>();
@@ -34,7 +44,7 @@ for (const p of pubs) {
     if (a.isElia) continue;
     if (!nodeMap.has(a.slug)) {
       const info = links[a.slug];
-      nodeMap.set(a.slug, { id: a.slug, name: a.display, count: 0, elia: false, url: info?.url || undefined });
+      nodeMap.set(a.slug, { id: a.slug, name: a.display, count: 0, elia: false, url: info?.url || undefined, topic: info?.topic || undefined });
     }
     nodeMap.get(a.slug)!.count++;
     ids.push(a.slug);
@@ -54,7 +64,11 @@ const graph = {
 };
 
 const top = collabs.slice(0, 10).map((c) => ({ ...c, url: links[c.slug]?.url, aff: links[c.slug]?.affiliation }));
-const linkedCount = collabs.filter((c) => links[c.slug]?.url).length;
+
+// legend: only topics actually assigned to a co-author
+const usedTopics = new Set(graph.nodes.map((n) => n.topic).filter(Boolean));
+const legendTopics = TOPICS.filter((t) => usedTopics.has(t.id));
+const hasUncategorised = graph.nodes.some((n) => !n.elia && !n.topic);
 
 const impact = [
   { label: 'Citations', value: String(metrics.citations) },
@@ -117,17 +131,26 @@ const maxYearCites = Math.max(1, ...metrics.perYear.map((p) => p.citations));
     <section class="block">
       <h2 class="sec-title">Collaboration network</h2>
       <p class="block-intro">
-        Every co-author, sized by shared papers and linked when they appear together. Drag a node, hover to focus,
-        click to open a profile where available.
+        Every co-author, sized by shared papers, linked when they appear together and coloured by their main area of
+        collaboration. Drag a node, scroll or pinch to zoom, drag the background to pan; hover to focus, click to open a
+        profile where available.
       </p>
 
       <figure class="graph-figure">
-        <div id="graph" class="graph" role="img"
-          aria-label={`Co-authorship network: Elia Onofri and ${collabs.length} co-authors.`}></div>
+        <div class="graph-wrap">
+          <div id="graph" class="graph" role="img"
+            aria-label={`Co-authorship network: Elia Onofri and ${collabs.length} co-authors.`}></div>
+          <div class="graph-controls">
+            <button type="button" data-zoom="in" aria-label="Zoom in">+</button>
+            <button type="button" data-zoom="out" aria-label="Zoom out">−</button>
+            <button type="button" data-zoom="reset" aria-label="Reset view">⟲</button>
+          </div>
+        </div>
         <figcaption class="graph-legend">
           <span class="lg lg-me">Elia</span>
-          <span class="lg lg-co">co-author (size = shared papers)</span>
-          <span class="lg lg-link">click-through where a profile is on file</span>
+          {legendTopics.map((t) => <span class={`lg topic-${t.id}`}>{t.label}</span>)}
+          {hasUncategorised && <span class="lg lg-other">other</span>}
+          <span class="lg lg-link">profile on file</span>
         </figcaption>
       </figure>
 
@@ -155,7 +178,7 @@ const maxYearCites = Math.max(1, ...metrics.perYear.map((p) => p.citations));
 <script>
   import { forceSimulation, forceManyBody, forceLink, forceCenter, forceCollide, forceX, forceY } from 'd3-force';
 
-  interface GNode { id: string; name: string; count: number; elia: boolean; url?: string; x?: number; y?: number; fx?: number | null; fy?: number | null; }
+  interface GNode { id: string; name: string; count: number; elia: boolean; url?: string; topic?: string; x?: number; y?: number; fx?: number | null; fy?: number | null; }
   interface GLink { source: any; target: any; weight: number; }
 
   const dataEl = document.getElementById('graph-data');
@@ -163,6 +186,7 @@ const maxYearCites = Math.max(1, ...metrics.perYear.map((p) => p.citations));
   if (dataEl && host) {
     const graph = JSON.parse(dataEl.textContent || '{"nodes":[],"links":[]}') as { nodes: GNode[]; links: GLink[] };
     const SVGNS = 'http://www.w3.org/2000/svg';
+    const clamp = (v: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, v));
 
     let width = host.clientWidth || 720;
     let height = Math.max(420, Math.min(620, Math.round(width * 0.78)));
@@ -173,10 +197,31 @@ const maxYearCites = Math.max(1, ...metrics.perYear.map((p) => p.citations));
     svg.setAttribute('viewBox', `0 0 ${width} ${height}`);
     host.appendChild(svg);
 
+    // zoom/pan viewport
+    const viewport = document.createElementNS(SVGNS, 'g');
+    svg.appendChild(viewport);
     const gLinks = document.createElementNS(SVGNS, 'g');
     const gNodes = document.createElementNS(SVGNS, 'g');
-    svg.appendChild(gLinks);
-    svg.appendChild(gNodes);
+    viewport.appendChild(gLinks);
+    viewport.appendChild(gNodes);
+
+    const view = { x: 0, y: 0, k: 1 };
+    function applyView() {
+      viewport.setAttribute('transform', `translate(${view.x} ${view.y}) scale(${view.k})`);
+      svg.classList.toggle('zoomed', view.k >= 1.5);
+    }
+    const svgPoint = (ev: { clientX: number; clientY: number }) => {
+      const r = svg.getBoundingClientRect();
+      return { x: ((ev.clientX - r.left) / r.width) * width, y: ((ev.clientY - r.top) / r.height) * height };
+    };
+    const worldFromSvg = (p: { x: number; y: number }) => ({ x: (p.x - view.x) / view.k, y: (p.y - view.y) / view.k });
+    function zoomAt(sp: { x: number; y: number }, factor: number) {
+      const w = worldFromSvg(sp);
+      view.k = clamp(view.k * factor, 0.4, 5);
+      view.x = sp.x - w.x * view.k;
+      view.y = sp.y - w.y * view.k;
+      applyView();
+    }
 
     const radius = (n: GNode) => (n.elia ? 13 : 4 + Math.sqrt(n.count) * 2.4);
 
@@ -199,8 +244,13 @@ const maxYearCites = Math.max(1, ...metrics.perYear.map((p) => p.citations));
     });
 
     const nodeEls = graph.nodes.map((n) => {
+      const cls = ['g-node'];
+      if (n.elia) cls.push('is-me');
+      if (n.url) cls.push('has-link');
+      if (n.elia || n.count >= 3) cls.push('big');
+      if (n.topic) cls.push('topic-' + n.topic);
       const g = document.createElementNS(SVGNS, 'g');
-      g.setAttribute('class', 'g-node' + (n.elia ? ' is-me' : '') + (n.url ? ' has-link' : ''));
+      g.setAttribute('class', cls.join(' '));
       g.setAttribute('tabindex', '0');
       const c = document.createElementNS(SVGNS, 'circle');
       c.setAttribute('r', String(radius(n)));
@@ -209,7 +259,6 @@ const maxYearCites = Math.max(1, ...metrics.perYear.map((p) => p.citations));
       label.setAttribute('class', 'g-label');
       label.setAttribute('dy', '-0.7em');
       label.textContent = n.name;
-      if (!n.elia && n.count < 3) label.style.opacity = '0'; // show big ones by default
       g.appendChild(label);
       const native = document.createElementNS(SVGNS, 'title');
       native.textContent = `${n.name} — ${n.count} paper${n.count > 1 ? 's' : ''}`;
@@ -217,7 +266,35 @@ const maxYearCites = Math.max(1, ...metrics.perYear.map((p) => p.citations));
       gNodes.appendChild(g);
 
       const open = () => { if (n.url) window.open(n.url, '_blank', 'noopener'); };
-      g.addEventListener('click', open);
+      let moved = false;
+      let down: { x: number; y: number } | null = null;
+
+      g.addEventListener('pointerdown', (ev) => {
+        ev.stopPropagation();
+        (ev as PointerEvent).preventDefault();
+        moved = false;
+        down = svgPoint(ev as PointerEvent);
+        n.fx = n.x; n.fy = n.y;
+        dragNode = n;
+        sim.alphaTarget(0.2).restart();
+        g.setPointerCapture((ev as PointerEvent).pointerId);
+      });
+      g.addEventListener('pointermove', (ev) => {
+        if (dragNode !== n) return;
+        const sp = svgPoint(ev as PointerEvent);
+        if (down && Math.hypot(sp.x - down.x, sp.y - down.y) > 3) moved = true;
+        const w = worldFromSvg(sp);
+        n.fx = w.x; n.fy = w.y;
+      });
+      const endNode = () => {
+        if (dragNode !== n) return;
+        if (!moved && n.url) open();      // click, not a drag → open
+        if (!n.elia) { n.fx = null; n.fy = null; }
+        dragNode = null;
+        sim.alphaTarget(0);
+      };
+      g.addEventListener('pointerup', endNode);
+      g.addEventListener('pointercancel', endNode);
       g.addEventListener('keydown', (e) => { if ((e as KeyboardEvent).key === 'Enter') open(); });
       g.addEventListener('pointerenter', () => focus(n.id));
       g.addEventListener('pointerleave', () => focus(null));
@@ -232,8 +309,7 @@ const maxYearCites = Math.max(1, ...metrics.perYear.map((p) => p.citations));
         const nid = graph.nodes[i].id;
         const on = !near || near.has(nid);
         el.classList.toggle('dim', !on);
-        const lbl = el.querySelector('.g-label') as SVGTextElement | null;
-        if (lbl && !graph.nodes[i].elia && graph.nodes[i].count < 3) lbl.style.opacity = (near && near.has(nid)) ? '1' : '0';
+        el.classList.toggle('lbl', !!id && !!near && near.has(nid));
       });
       lineEls.forEach((el, i) => {
         const l = graph.links[i];
@@ -274,33 +350,42 @@ const maxYearCites = Math.max(1, ...metrics.perYear.map((p) => p.citations));
       });
     }
 
-    // drag
-    let dragging: GNode | null = null;
-    function clientToSvg(ev: PointerEvent) {
-      const r = svg.getBoundingClientRect();
-      return { x: ((ev.clientX - r.left) / r.width) * width, y: ((ev.clientY - r.top) / r.height) * height };
-    }
-    nodeEls.forEach((el, i) => {
-      el.addEventListener('pointerdown', (ev) => {
-        ev.preventDefault();
-        dragging = graph.nodes[i];
-        sim.alphaTarget(0.2).restart();
-        el.setPointerCapture((ev as PointerEvent).pointerId);
-      });
-      el.addEventListener('pointermove', (ev) => {
-        if (dragging !== graph.nodes[i]) return;
-        const p = clientToSvg(ev as PointerEvent);
-        dragging.fx = p.x; dragging.fy = p.y;
-      });
-      const end = () => {
-        if (dragging === graph.nodes[i]) {
-          if (!dragging.elia) { dragging.fx = null; dragging.fy = null; }
-          dragging = null;
-          sim.alphaTarget(0);
-        }
-      };
-      el.addEventListener('pointerup', end);
-      el.addEventListener('pointercancel', end);
+    // ── pan (background drag) + zoom (wheel / buttons) ──
+    let dragNode: GNode | null = null;
+    let panning = false;
+    let panStart: { x: number; y: number } | null = null;
+    let panOrig = { x: 0, y: 0 };
+
+    svg.addEventListener('pointerdown', (ev) => {
+      panning = true;
+      panStart = svgPoint(ev as PointerEvent);
+      panOrig = { x: view.x, y: view.y };
+      svg.classList.add('panning');
+      svg.setPointerCapture((ev as PointerEvent).pointerId);
+    });
+    svg.addEventListener('pointermove', (ev) => {
+      if (!panning || !panStart) return;
+      const sp = svgPoint(ev as PointerEvent);
+      view.x = panOrig.x + (sp.x - panStart.x);
+      view.y = panOrig.y + (sp.y - panStart.y);
+      applyView();
+    });
+    const endPan = () => { panning = false; svg.classList.remove('panning'); };
+    svg.addEventListener('pointerup', endPan);
+    svg.addEventListener('pointercancel', endPan);
+    svg.addEventListener('wheel', (ev) => {
+      ev.preventDefault();
+      zoomAt(svgPoint(ev), (ev as WheelEvent).deltaY < 0 ? 1.15 : 1 / 1.15);
+    }, { passive: false });
+
+    const controls = host.parentElement?.querySelector('.graph-controls');
+    controls?.addEventListener('click', (ev) => {
+      const b = (ev.target as HTMLElement).closest('[data-zoom]') as HTMLElement | null;
+      if (!b) return;
+      const center = { x: width / 2, y: height / 2 };
+      if (b.dataset.zoom === 'in') zoomAt(center, 1.3);
+      else if (b.dataset.zoom === 'out') zoomAt(center, 1 / 1.3);
+      else { view.x = 0; view.y = 0; view.k = 1; applyView(); }
     });
 
     window.addEventListener('resize', () => {
@@ -403,6 +488,7 @@ const maxYearCites = Math.max(1, ...metrics.perYear.map((p) => p.citations));
   .block-intro { color: var(--muted); margin: 0 0 18px; max-width: 62ch; }
 
   .graph-figure { margin: 0; }
+  .graph-wrap { position: relative; }
   .graph {
     width: 100%;
     background: radial-gradient(circle at 50% 45%, var(--panel) 0%, var(--bg-2) 100%);
@@ -410,7 +496,31 @@ const maxYearCites = Math.max(1, ...metrics.perYear.map((p) => p.citations));
     border-radius: 14px;
     overflow: hidden;
     touch-action: none;
+    cursor: grab;
   }
+  .graph :global(svg.panning) { cursor: grabbing; }
+  .graph-controls {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .graph-controls button {
+    width: 30px;
+    height: 30px;
+    font-family: var(--mono);
+    font-size: 1rem;
+    line-height: 1;
+    color: var(--ink-soft);
+    background: color-mix(in srgb, var(--panel) 86%, transparent);
+    border: 1px solid var(--rule);
+    border-radius: 7px;
+    cursor: pointer;
+    transition: color 0.15s, border-color 0.15s;
+  }
+  .graph-controls button:hover { color: var(--ink); border-color: var(--teal); }
   .graph-legend {
     display: flex;
     flex-wrap: wrap;
@@ -421,16 +531,28 @@ const maxYearCites = Math.max(1, ...metrics.perYear.map((p) => p.citations));
     color: var(--muted);
   }
   .lg { display: inline-flex; align-items: center; gap: 6px; }
-  .lg::before { content: ''; width: 10px; height: 10px; border-radius: 50%; }
+  .lg::before { content: ''; width: 10px; height: 10px; border-radius: 50%; background: var(--muted); }
   .lg-me::before { background: var(--teal); }
-  .lg-co::before { background: var(--terra); }
+  .lg-other::before { background: var(--muted); }
   .lg-link::before { background: transparent; border: 1px solid var(--gold); }
+  .lg.topic-security::before { background: var(--t-security); }
+  .lg.topic-numerical::before { background: var(--t-numerical); }
+  .lg.topic-biology::before { background: var(--t-biology); }
+  .lg.topic-topology::before { background: var(--t-topology); }
+  .lg.topic-graph::before { background: var(--t-graph); }
+  .lg.topic-ml::before { background: var(--t-ml); }
 
   /* graph elements (global — injected by the client script) */
   :global(.g-link) { stroke: var(--rule); stroke-opacity: 0.7; transition: stroke-opacity 0.15s; }
   :global(.g-link.dim) { stroke-opacity: 0.08; }
   :global(.g-node) { cursor: grab; }
-  :global(.g-node circle) { fill: var(--terra); stroke: var(--bg); stroke-width: 1.5; transition: opacity 0.15s; }
+  :global(.g-node circle) { fill: var(--muted); stroke: var(--bg); stroke-width: 1.5; transition: opacity 0.15s; }
+  :global(.g-node.topic-security circle) { fill: var(--t-security); }
+  :global(.g-node.topic-numerical circle) { fill: var(--t-numerical); }
+  :global(.g-node.topic-biology circle) { fill: var(--t-biology); }
+  :global(.g-node.topic-topology circle) { fill: var(--t-topology); }
+  :global(.g-node.topic-graph circle) { fill: var(--t-graph); }
+  :global(.g-node.topic-ml circle) { fill: var(--t-ml); }
   :global(.g-node.is-me circle) { fill: var(--teal); stroke-width: 2; }
   :global(.g-node.has-link circle) { stroke: var(--gold); stroke-width: 1.5; }
   :global(.g-node.dim) { opacity: 0.18; }
@@ -442,8 +564,12 @@ const maxYearCites = Math.max(1, ...metrics.perYear.map((p) => p.citations));
     fill: var(--ink-soft);
     text-anchor: middle;
     pointer-events: none;
+    opacity: 0;
     transition: opacity 0.15s;
   }
+  :global(.g-node.big .g-label) { opacity: 1; }
+  :global(.g-node.lbl .g-label) { opacity: 1; }
+  :global(svg.zoomed .g-label) { opacity: 0.85; }
   :global(.g-node.is-me .g-label) { font-size: 12px; fill: var(--ink); font-weight: 700; }
 
   .top { margin-top: 30px; }

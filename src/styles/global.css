@@ -25,6 +25,14 @@
   --purple-tint: rgba(154, 134, 196, 0.15);
   --shadow: 0 14px 40px -18px rgba(0, 0, 0, 0.65);
 
+  /* topic colours (collaboration graph) */
+  --t-security: #4e9286;
+  --t-numerical: #d08a63;
+  --t-biology: #e0b354;
+  --t-topology: #9a86c4;
+  --t-graph: #6fa8c7;
+  --t-ml: #c77b9e;
+
   --serif: 'Source Serif 4 Variable', 'Iowan Old Style', Georgia, serif;
   --sans: 'Source Sans 3 Variable', system-ui, -apple-system, sans-serif;
   --mono: 'Source Code Pro Variable', ui-monospace, 'SFMono-Regular', Menlo, monospace;
@@ -49,6 +57,12 @@
   --terra-tint: rgba(181, 112, 79, 0.12);
   --gold-tint: rgba(199, 154, 62, 0.14);
   --purple-tint: rgba(106, 90, 140, 0.13);
+  --t-security: #3a746a;
+  --t-numerical: #b5704f;
+  --t-biology: #c79a3e;
+  --t-topology: #7a66a8;
+  --t-graph: #3e7ca0;
+  --t-ml: #a24e76;
   --shadow: 0 14px 38px -20px rgba(40, 40, 30, 0.28);
 }
 

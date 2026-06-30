@@ -2,386 +2,463 @@
   "alberto-paoluzzi": {
     "name": "Alberto Paoluzzi",
     "url": "https://plasmlanguage.org/apaoluzzi/",
-    "affiliation": "Roma Tre University"
+    "affiliation": "Roma Tre University",
+    "topic": "topology"
   },
   "alessandro-corbetta": {
     "name": "Alessandro Corbetta",
     "url": "https://corbetta.phys.tue.nl",
-    "affiliation": "Assistant professor, TU/e"
+    "affiliation": "Assistant professor, TU/e",
+    "topic": "numerical"
   },
   "alessandro-di-deo": {
     "name": "Alessandro Di Deo",
     "url": "https://www.iac.cnr.it/personale/alessandro-di-deo",
-    "affiliation": "CNR-IAC"
+    "affiliation": "CNR-IAC",
+    "topic": "biology"
   },
   "alessandro-ravoni": {
     "name": "Alessandro Ravoni",
     "url": "https://www.iac.cnr.it/personale/alessandro-ravoni",
-    "affiliation": "CNR"
+    "affiliation": "CNR",
+    "topic": "biology"
   },
   "alessandro-stamilla": {
     "name": "Alessandro Stamilla",
     "url": "",
-    "affiliation": ""
+    "affiliation": "",
+    "topic": "biology"
   },
   "andrea-ciccotelli": {
     "name": "Andrea Ciccotelli",
     "url": "https://ciccotelliandrea.it",
-    "affiliation": "Ph.D. Student, CRI-Lab (KAUST)"
+    "affiliation": "Ph.D. Student, CRI-Lab (KAUST)",
+    "topic": "security"
   },
   "andrea-de-salve": {
     "name": "Andrea De Salve",
     "url": "https://pages.di.unipi.it/desalve/",
-    "affiliation": "Researcher, CNR-ISASI"
+    "affiliation": "Researcher, CNR-ISASI",
+    "topic": "security"
   },
   "andrea-martelli": {
     "name": "Andrea Martelli",
     "url": "",
-    "affiliation": ""
+    "affiliation": "",
+    "topic": "biology"
   },
   "antonio-dicarlo": {
     "name": "Antonio DiCarlo",
     "url": "https://www.researchgate.net/profile/Antonio-Dicarlo",
-    "affiliation": "Managing Director, CECAM-IT-SIMUL Node"
+    "affiliation": "Managing Director, CECAM-IT-SIMUL Node",
+    "topic": "topology"
   },
   "aristides-dokoumentzidis": {
     "name": "Aristides Dokoumentzidis",
     "url": "",
-    "affiliation": ""
+    "affiliation": "",
+    "topic": "biology"
   },
   "caterina-millevoi": {
     "name": "Caterina Millevoi",
     "url": "https://mox.polimi.it/people/people-details/?id_staff=100186&nome_staff=Caterina%20Millevoi",
-    "affiliation": "Posdoctoral Researcher, MOX (PoliMi)"
+    "affiliation": "Posdoctoral Researcher, MOX (PoliMi)",
+    "topic": ""
   },
   "christine-nardini": {
     "name": "Christine Nardini",
     "url": "https://www.iac.cnr.it/personale/christine-nardini",
-    "affiliation": "Senior Researcher, CNR-IAC"
+    "affiliation": "Senior Researcher, CNR-IAC",
+    "topic": "biology"
   },
   "cristiano-riminesi": {
     "name": "Cristiano Riminesi",
     "url": "https://www.ispc.cnr.it/it_it/team/riminesi-cristiano/",
-    "affiliation": "Senior Researcher, CNR-ISPC"
+    "affiliation": "Senior Researcher, CNR-ISPC",
+    "topic": "numerical"
   },
   "danilo-macchion": {
     "name": "Danilo Macchion",
     "url": "",
-    "affiliation": ""
+    "affiliation": "",
+    "topic": "numerical"
   },
   "davide-moretti": {
     "name": "Davide Moretti",
     "url": "https://www.uniroma3.it/en/persone/OWZWNjk2TTdieVZuU01ORVRIdjFKc2pSN3N4WlgwS081cDE1Z2k3YW1vQT0=/",
-    "affiliation": "Ph.D. Student, Roma Tre University"
+    "affiliation": "Ph.D. Student, Roma Tre University",
+    "topic": "biology"
   },
   "davide-scorze": {
     "name": "Davide Scorze",
     "url": "",
-    "affiliation": ""
+    "affiliation": "",
+    "topic": "biology"
   },
   "elena-bachini": {
     "name": "Elena Bachini",
     "url": "https://elenabachini.github.io",
-    "affiliation": "Junior assistant professor, University of Padua"
+    "affiliation": "Junior assistant professor, University of Padua",
+    "topic": ""
   },
   "emanuele-ricco": {
     "name": "Emanuele Ricco",
     "url": "https://www.linkedin.com/in/emanuele-ricco-73705116b?originalSubdomain=sa",
-    "affiliation": "Ph.D. Student, CRI-Lab (KAUST)"
+    "affiliation": "Ph.D. Student, CRI-Lab (KAUST)",
+    "topic": "security"
   },
   "emiliano-cristiani": {
     "name": "Emiliano Cristiani",
     "url": "https://www.emilianocristiani.it",
-    "affiliation": "Research Director, CNR-IAC"
+    "affiliation": "Research Director, CNR-IAC",
+    "topic": "numerical"
   },
   "enrica-campagnaro": {
     "name": "Enrica Campagnaro",
     "url": "",
-    "affiliation": ""
+    "affiliation": "",
+    "topic": "biology"
   },
   "enrico-mastrostefano": {
     "name": "Enrico Mastrostefano",
     "url": "https://www.iac.cnr.it/personale/enrico-mastrostefano",
-    "affiliation": "CNR-IAC"
+    "affiliation": "CNR-IAC",
+    "topic": "biology"
   },
   "evangelos-karakitsios": {
     "name": "Evangelos Karakitsios",
     "url": "",
-    "affiliation": ""
+    "affiliation": "",
+    "topic": "biology"
   },
   "federico-toschi": {
     "name": "Federico Toschi",
     "url": "https://www.tue.nl/en/research/researchers/federico-toschi",
-    "affiliation": "Full professor, Tu/e"
+    "affiliation": "Full professor, Tu/e",
+    "topic": "numerical"
   },
   "filippo-castiglione": {
     "name": "Filippo Castiglione",
     "url": "https://wwwold.iac.rm.cnr.it/~filippo/about-me.html",
-    "affiliation": "Research Director, CNR-IAC"
+    "affiliation": "Research Director, CNR-IAC",
+    "topic": "biology"
   },
   "flavio-lombardi": {
     "name": "Flavio Lombardi",
     "url": "https://wwwold.iac.cnr.it/~lombardi/",
-    "affiliation": "Researcher, CNR-IAC"
+    "affiliation": "Researcher, CNR-IAC",
+    "topic": "graph"
   },
   "francesca-boldrin": {
     "name": "Francesca Boldrin",
     "url": "",
-    "affiliation": ""
+    "affiliation": "",
+    "topic": "biology"
   },
   "francesca-pelusi": {
     "name": "Francesca Pelusi",
     "url": "",
-    "affiliation": ""
+    "affiliation": "",
+    "topic": "biology"
   },
   "gabriella-bretti": {
     "name": "Gabriella Bretti",
     "url": "https://wwwold.iac.rm.cnr.it/~bretti/",
-    "affiliation": "Senior Researcher, CNR-IAC"
+    "affiliation": "Senior Researcher, CNR-IAC",
+    "topic": "numerical"
   },
   "gennaro-auricchio": {
     "name": "Gennaro Auricchio",
     "url": "https://www.math.unipd.it/en/department/people/gennaro.auricchio/",
-    "affiliation": "University of Padua"
+    "affiliation": "University of Padua",
+    "topic": ""
   },
   "gianmaria-del-monte": {
     "name": "Gianmaria Del Monte",
     "url": "https://www.linkedin.com/in/gianmaria-del-monte-81575b162/",
-    "affiliation": "Software engeneer, CERN"
+    "affiliation": "Software engeneer, CERN",
+    "topic": "topology"
   },
   "giorgio-scorzelli": {
     "name": "Giorgio Scorzelli",
     "url": "https://people.utah.edu/basic.hml?eid=48426651",
-    "affiliation": "Principal Software Design Eng, University of Utah"
+    "affiliation": "Principal Software Design Eng, University of Utah",
+    "topic": "topology"
   },
   "giovanni-delogu": {
     "name": "Giovanni Delogu",
     "url": "",
-    "affiliation": ""
+    "affiliation": "",
+    "topic": "biology"
   },
   "giulia-degiacomini": {
     "name": "Giulia Degiacomini",
     "url": "",
-    "affiliation": ""
+    "affiliation": "",
+    "topic": "biology"
   },
   "giuseppe-pontrelli": {
     "name": "Giuseppe Pontrelli",
     "url": "https://www.iac.cnr.it/personale/giuseppe-pontrelli",
-    "affiliation": "Research Director (Retired), CNR-IAC"
+    "affiliation": "Research Director (Retired), CNR-IAC",
+    "topic": "biology"
   },
   "greta-segafreddo": {
     "name": "Greta Segafreddo",
     "url": "",
-    "affiliation": ""
+    "affiliation": "",
+    "topic": "biology"
   },
   "ivana-palucci": {
     "name": "Ivana Palucci",
     "url": "",
-    "affiliation": ""
+    "affiliation": "",
+    "topic": "biology"
   },
   "jan-rybniker": {
     "name": "Jan Rybniker",
     "url": "",
-    "affiliation": ""
+    "affiliation": "",
+    "topic": "biology"
   },
   "joel-giron-hernandez": {
     "name": "Joel Girón Hernández",
     "url": "https://www.upv.es/ficha-personal/LUGIHER",
-    "affiliation": "Researcher, Centro de Biomateriales e Ingeniería Tisular"
+    "affiliation": "Researcher, Centro de Biomateriales e Ingeniería Tisular",
+    "topic": "biology"
   },
   "laura-cioetto-mazzabo": {
     "name": "Laura Cioetto-Mazzabò",
     "url": "",
-    "affiliation": ""
+    "affiliation": "",
+    "topic": "biology"
   },
   "laura-emilia-maria-ricci": {
     "name": "Laura Emilia Maria Ricci",
     "url": "https://pages.di.unipi.it/ricci/",
-    "affiliation": "Full professor, University of Pisa"
+    "affiliation": "Full professor, University of Pisa",
+    "topic": "security"
   },
   "lorenzo-cima": {
     "name": "Lorenzo Cima",
     "url": "https://people.unipi.it/lorenzo_cima/",
-    "affiliation": "Posdoctoral Researcher, CNR-IIT"
+    "affiliation": "Posdoctoral Researcher, CNR-IIT",
+    "topic": "security"
   },
   "lorenzo-gasparini": {
     "name": "Lorenzo Gasparini",
     "url": "https://www.linkedin.com/in/lorenzo-gasparini-2a4136250/",
-    "affiliation": "Quantum specialist, Leonardo"
+    "affiliation": "Quantum specialist, Leonardo",
+    "topic": "security"
   },
   "luciano-pensabene-buemi": {
     "name": "Luciano Pensabene Buemi",
     "url": "https://independent.academia.edu/LPensabene",
-    "affiliation": "Conservator, Peggy Guggenhein Collection"
+    "affiliation": "Conservator, Peggy Guggenhein Collection",
+    "topic": "numerical"
   },
   "marco-cianfriglia": {
     "name": "Marco Cianfriglia",
     "url": "",
-    "affiliation": ""
+    "affiliation": "",
+    "topic": "security"
   },
   "marco-pedicini": {
     "name": "Marco Pedicini",
     "url": "https://www.mat.uniroma3.it/users/pedicini/",
-    "affiliation": "Associate Professor, Roma Tre University"
+    "affiliation": "Associate Professor, Roma Tre University",
+    "topic": "security"
   },
   "maria-catrambone": {
     "name": "Maria Catrambone",
     "url": "https://www.ispc.cnr.it/it_it/team/catrambone-maria/",
-    "affiliation": "Senior Researcher, CNR-ISPC"
+    "affiliation": "Senior Researcher, CNR-ISPC",
+    "topic": "numerical"
   },
   "maria-concetta-palumbo": {
     "name": "Maria Concetta Palumbo",
     "url": "http://www.iac.cnr.it/personale/maria-concetta-palumbo",
-    "affiliation": "Researcher, CNR-IAC"
+    "affiliation": "Researcher, CNR-IAC",
+    "topic": "biology"
   },
   "maria-rosalia-pasca": {
     "name": "Maria Rosalia Pasca",
     "url": "",
-    "affiliation": ""
+    "affiliation": "",
+    "topic": "biology"
   },
   "marina-minozzi": {
     "name": "Marina Minozzi",
     "url": "",
-    "affiliation": ""
+    "affiliation": "",
+    "topic": "numerical"
   },
   "martina-palmucci": {
     "name": "Martina Palmucci",
     "url": "https://www.linkedin.com/in/martina-palmucci-06627b165/?locale=it",
-    "affiliation": "Security assurance engeneer, ESA"
+    "affiliation": "Security assurance engeneer, ESA",
+    "topic": "security"
   },
   "massimiliano-pedone": {
     "name": "Massimiliano Pedone",
     "url": "",
-    "affiliation": ""
+    "affiliation": "",
+    "topic": "numerical"
   },
   "massimo-bernaschi": {
     "name": "Massimo Bernaschi",
     "url": "",
-    "affiliation": ""
+    "affiliation": "",
+    "topic": "numerical"
   },
   "matteo-paoluzzi": {
     "name": "Matteo Paoluzzi",
     "url": "https://research.uniroma1.it/researcher/b5f892112dc809b8f34adc5d9317124a15a81cf368d78adfa6fd679e",
-    "affiliation": "Associate Professor, Sapienza University of Rome"
+    "affiliation": "Associate Professor, Sapienza University of Rome",
+    "topic": "numerical"
   },
   "maurantonio-caprolu": {
     "name": "Maurantonio Caprolu",
     "url": "https://orcid.org/0000-0001-8237-0539",
-    "affiliation": "Research scientist, CRI-Lab (KAUST)"
+    "affiliation": "Research scientist, CRI-Lab (KAUST)",
+    "topic": "security"
   },
   "maurizio-ceseri": {
     "name": "Maurizio Ceseri",
     "url": "",
-    "affiliation": "Researcher, CNR-IAC"
+    "affiliation": "Researcher, CNR-IAC",
+    "topic": "numerical"
   },
   "maya-briani": {
     "name": "Maya Briani",
     "url": "https://www.iac.cnr.it/personale/maya-briani",
-    "affiliation": "Senior Researcher, CNR-IAC"
+    "affiliation": "Senior Researcher, CNR-IAC",
+    "topic": "numerical"
   },
   "michael-dal-molin": {
     "name": "Michael Dal Molin",
     "url": "",
-    "affiliation": ""
+    "affiliation": "",
+    "topic": "biology"
   },
   "michela-czech": {
     "name": "Michela Czech",
     "url": "https://www.linkedin.com/in/michela-czech/",
-    "affiliation": "IT Project Manager, Arakne"
+    "affiliation": "IT Project Manager, Arakne",
+    "topic": "numerical"
   },
   "omar-eldesouky": {
     "name": "Omar Eldesouky",
     "url": "https://cri-lab.net",
-    "affiliation": "Ph.D. Student, CRI-Lab (KAUST)"
+    "affiliation": "Ph.D. Student, CRI-Lab (KAUST)",
+    "topic": "security"
   },
   "oscar-della-pasqua": {
     "name": "Oscar Della Pasqua",
     "url": "https://profiles.ucl.ac.uk/19796-oscar-della-pasqua",
-    "affiliation": "Professor, UCL"
+    "affiliation": "Professor, UCL",
+    "topic": "biology"
   },
   "paola-stolfi": {
     "name": "Paola Stolfi",
     "url": "https://www.iac.cnr.it/personale/paola-stolfi",
-    "affiliation": "Researcher, CNR-IAC"
+    "affiliation": "Researcher, CNR-IAC",
+    "topic": "numerical"
   },
   "paolo-mori": {
     "name": "Paolo Mori",
     "url": "https://www.iit.cnr.it/paolo.mori/",
-    "affiliation": "Senior Researcher, CNR-IIT"
+    "affiliation": "Senior Researcher, CNR-IIT",
+    "topic": "security"
   },
   "paolo-tieri": {
     "name": "Paolo Tieri",
     "url": "https://www.iac.cnr.it/personale/paolo-tieri",
-    "affiliation": "Senior Researcher, CNR-IAC"
+    "affiliation": "Senior Researcher, CNR-IAC",
+    "topic": "biology"
   },
   "pasqua-d-ambra": {
     "name": "Pasqua D'Ambra",
     "url": "https://www.iac.cnr.it/personale/pasqua-dambra",
-    "affiliation": "Research Director, CNR-IAC"
+    "affiliation": "Research Director, CNR-IAC",
+    "topic": "numerical"
   },
   "piergiorgio-gentile": {
     "name": "Piergiorgio Gentile",
     "url": "https://orcid.org/0000-0002-3036-6594",
-    "affiliation": "Senior Researcher, Centro de Biomateriales e Ingeniería Tisular"
+    "affiliation": "Senior Researcher, Centro de Biomateriales e Ingeniería Tisular",
+    "topic": "biology"
   },
   "pietro-centorrino": {
     "name": "Pietro Centorrino",
     "url": "",
-    "affiliation": ""
+    "affiliation": "",
+    "topic": "numerical"
   },
   "pietro-ferrara": {
     "name": "Pietro Ferrara",
     "url": "",
-    "affiliation": ""
+    "affiliation": "",
+    "topic": "numerical"
   },
   "riccardo-manganelli": {
     "name": "Riccardo Manganelli",
     "url": "",
-    "affiliation": ""
+    "affiliation": "",
+    "topic": "biology"
   },
   "roberto-di-pietro": {
     "name": "Roberto Di Pietro",
     "url": "https://www.kaust.edu.sa/en/study/faculty/roberto-di-pietro",
-    "affiliation": "CRI-Lab Director & Full Professor, KAUST"
+    "affiliation": "CRI-Lab Director & Full Professor, KAUST",
+    "topic": "security"
   },
   "salvatore-d-agate": {
     "name": "Salvatore D'Agate",
     "url": "",
-    "affiliation": ""
+    "affiliation": "",
+    "topic": "biology"
   },
   "sandro-tassa": {
     "name": "Sandro Tassa",
     "url": "https://www.linkedin.com/in/sandrotassa/",
-    "affiliation": "Chief Technology Officer, Arakne"
+    "affiliation": "Chief Technology Officer, Arakne",
+    "topic": "numerical"
   },
   "santiago-ramon-garcia": {
     "name": "Santiago Ramón-García",
     "url": "",
-    "affiliation": ""
+    "affiliation": "",
+    "topic": "biology"
   },
   "silvia-onofri": {
     "name": "Silvia Onofri",
     "url": "https://www.sns.it/it/persona/silvia-onofri",
-    "affiliation": "Ph.D. Student, University of Pisa"
+    "affiliation": "Ph.D. Student, University of Pisa",
+    "topic": "security"
   },
   "sofia-bizzarro": {
     "name": "Sofia Bizzarro",
     "url": "https://www.linkedin.com/in/sofia-bizzarro-917aa3249?originalSubdomain=it",
-    "affiliation": "Software programmer, Arakne"
+    "affiliation": "Software programmer, Arakne",
+    "topic": "numerical"
   },
   "stefano-cresci": {
     "name": "Stefano Cresci",
     "url": "https://www.iit.cnr.it/stefano.cresci/",
-    "affiliation": "Senior Researcher, CNR-IIT"
+    "affiliation": "Senior Researcher, CNR-IIT",
+    "topic": "security"
   },
   "umberto-villani": {
     "name": "Umberto Villani",
     "url": "",
-    "affiliation": ""
+    "affiliation": "",
+    "topic": "biology"
   },
   "vadim-shapiro": {
     "name": "Vadim Shapiro",
     "url": "https://directory.engr.wisc.edu/me/faculty/shapiro_vadim",
-    "affiliation": "Professor, University of Wisconsin-Madison"
+    "affiliation": "Professor, University of Wisconsin-Madison",
+    "topic": "topology"
   }
 }
