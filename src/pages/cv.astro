@@ -15,7 +15,9 @@ import BaseLayout from '@/layouts/BaseLayout.astro';
       </a>
     </div>
     <p id="gpg" class="gpg-note">
-      <span class="gpg-label">GPG key</span> — public key available on request; fingerprint and download to be published here.
+      <span class="gpg-label">GPG key</span> —
+      <a href="/elia-onofri.asc" download>download public key (.asc)</a><br />
+      <span class="gpg-fpr">64F7 305E 9FD8 1D8F 82EE&nbsp;&nbsp;69E1 0387 FD2F CD5E 487D</span>
     </p>
   </div>
 </BaseLayout>
@@ -36,6 +38,9 @@ import BaseLayout from '@/layouts/BaseLayout.astro';
   .cv-btn--dark  { background: var(--panel); color: var(--ink); }
   .cv-btn--light { background: var(--teal-tint); border-color: var(--teal); color: var(--teal); }
   .cv-btn:hover { border-color: var(--teal); background: var(--teal-tint); color: var(--teal); }
-  .gpg-note { font-family: var(--mono); font-size: 0.84rem; color: var(--muted); }
+  .gpg-note { font-family: var(--mono); font-size: 0.84rem; color: var(--muted); line-height: 1.9; }
   .gpg-label { color: var(--ink-soft); }
+  .gpg-note a { color: var(--teal); }
+  .gpg-note a:hover { text-decoration: underline; }
+  .gpg-fpr { color: var(--ink-soft); font-size: 0.78rem; letter-spacing: 0.02em; }
 </style>
