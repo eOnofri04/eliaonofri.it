@@ -70,10 +70,10 @@ export const projects: SwProject[] = [
     tags: ['Cryptocurrency', 'Graph contraction', 'Network analysis'],
     color: 'gold',
     links: [
-      { label: 'transactions', href: 'https://github.com/eOnofri04/Polkadot-ComNet2026' },
-      { label: 'contraction', href: 'https://github.com/eOnofri04/Polkadot-Contraction-DAPPS2024' },
-      { label: 'staking', href: 'https://github.com/eOnofri04/Polkadot-Staking-ICBC26', soon: true },
-      { label: 'paper', href: 'https://doi.org/10.1016/j.comnet.2026.112166' },
+      { label: 'Repo Transaction', href: 'https://github.com/eOnofri04/Polkadot-ComNet2026' },
+      { label: 'Repo Contraction', href: 'https://github.com/eOnofri04/Polkadot-Contraction-DAPPS2024' },
+      { label: 'Repo Staking', href: 'https://github.com/eOnofri04/Polkadot-Staking-ICBC26', soon: true },
+      { label: 'ComNet Paper', href: 'https://doi.org/10.1016/j.comnet.2026.112166' },
     ],
   },
   {
@@ -84,8 +84,9 @@ export const projects: SwProject[] = [
     tags: ['Cryptography', 'Lattices', 'Post-quantum'],
     color: 'teal',
     links: [
-      { label: 'DOI', href: 'https://doi.org/10.1515/jmc-2023-0026' },
-      { label: 'comparison', href: 'https://doi.org/10.1515/jmc-2025-0051' },
+      { label: 'Paper Revocation', href: 'https://doi.org/10.1515/jmc-2023-0026' },
+      { label: 'Paper Comparison', href: 'https://doi.org/10.1515/jmc-2025-0051' },
+      { label: 'GitHub', href: 'https://github.com/eOnofri04/Cross-primitive-comparison-in-CP-ABE' },
     ],
   },
   {
@@ -96,7 +97,7 @@ export const projects: SwProject[] = [
     tags: ['Cryptography', 'Oblivious transfer', 'IoT'],
     color: 'teal',
     links: [
-      { label: 'code', href: 'https://github.com/eOnofri04/IOT2' },
+      { label: 'GitHub', href: 'https://github.com/eOnofri04/IOT2' },
       { label: 'arXiv', href: 'https://arxiv.org/abs/2606.02344' },
     ],
   },
@@ -108,7 +109,7 @@ export const projects: SwProject[] = [
     tags: ['Cryptography', 'Privacy', 'Self-sovereign identity'],
     color: 'teal',
     links: [
-      { label: 'code', href: 'https://github.com/eOnofri04/COD-ssi', soon: true },
+      { label: 'GitHub', href: 'https://github.com/eOnofri04/COD-ssi', soon: true },
       { label: 'arXiv', href: 'https://arxiv.org/abs/2604.10685' },
     ],
   },
@@ -120,7 +121,7 @@ export const projects: SwProject[] = [
     tags: ['Cryptanalysis', 'C', 'PARI/GP', 'Finite fields'],
     color: 'teal',
     links: [
-      { label: 'DOI', href: 'https://doi.org/10.1007/s00200-023-00602-w' },
+      { label: 'Paper', href: 'https://doi.org/10.1007/s00200-023-00602-w' },
       { label: 'ePrint', href: 'https://eprint.iacr.org/2022/137' },
     ],
   },
@@ -132,8 +133,9 @@ export const projects: SwProject[] = [
     tags: ['Signal analysis', 'Machine Learning', 'Python'],
     color: 'purple',
     links: [
-      { label: 'method', href: 'https://github.com/eOnofri04/PRISM', soon: true },
-      { label: 'dataset', href: 'https://github.com/eOnofri04/PRISM-36K' },
+      { label: 'Dataset', href: 'https://doi.org/10.5281/zenodo.20065919' },
+      { label: 'GitHub method', href: 'https://github.com/eOnofri04/PRISM', soon: true },
+      { label: 'GitHub dataset', href: 'https://github.com/eOnofri04/PRISM-36K' },
       { label: 'arXiv', href: 'https://arxiv.org/abs/2509.15270' },
     ],
   },
@@ -145,8 +147,9 @@ export const projects: SwProject[] = [
     tags: ['Python', 'Machine Learning', 'LLMs'],
     color: 'purple',
     links: [
-      { label: 'code', href: 'https://github.com/eOnofri04/APORIA' },
+      { label: 'GitHub APORIA', href: 'https://github.com/eOnofri04/APORIA' },
       { label: 'arXiv', href: 'https://arxiv.org/abs/2602.14778' },
+      { label: 'paper', href: 'https://arxiv.org/abs/2602.14778', soon: true },
     ],
   },
   {
@@ -157,7 +160,7 @@ export const projects: SwProject[] = [
     tags: ['Julia', 'Computational Topology', 'Sparse linear algebra'],
     color: 'gold',
     links: [
-      { label: 'code', href: 'https://github.com/cvdlab/LinearAlgebraicRepresentation.jl' },
+      { label: 'GitHub', href: 'https://github.com/cvdlab/LinearAlgebraicRepresentation.jl' },
       { label: 'DOI', href: 'https://doi.org/10.1016/j.cad.2022.103436' },
       { label: 'arXiv', href: 'https://arxiv.org/abs/2004.00046' },
     ],
@@ -169,7 +172,7 @@ export const projects: SwProject[] = [
       'A Julia library computing α-complexes and α-shapes for point-cloud reconstruction and topological analysis, part of the LAR ecosystem.',
     tags: ['Julia', 'Computational Topology', 'Point clouds'],
     color: 'gold',
-    links: [{ label: 'code', href: 'https://github.com/eOnofri04/AlphaStructures.jl' }],
+    links: [{ label: 'GitHub', href: 'https://github.com/eOnofri04/AlphaStructures.jl' }],
   },
   {
     name: 'StoneVerse',
@@ -179,7 +182,7 @@ export const projects: SwProject[] = [
     tags: ['Numerical PDEs', 'Bayesian / ABC', 'Cultural Heritage'],
     color: 'terra',
     links: [
-      { label: 'DOI', href: 'https://doi.org/10.2312/DH.20253236' },
+      { label: 'Paper', href: 'https://doi.org/10.2312/DH.20253236' },
       { label: 'arXiv', href: 'https://arxiv.org/abs/2602.23932' },
     ],
   },
@@ -191,8 +194,8 @@ export const projects: SwProject[] = [
     tags: ['MATLAB', 'Numerical modelling', 'Drug delivery', 'Computational Biology'],
     color: 'terra',
     links: [
-      { label: 'code', href: 'https://github.com/eOnofri04/NRMc' },
-      { label: 'DOI', href: 'https://doi.org/10.3934/mbe.2026001' },
+      { label: 'GitHub', href: 'https://github.com/eOnofri04/NRMc' },
+      { label: 'Paper', href: 'https://doi.org/10.3934/mbe.2026001' },
     ],
   },
   {
@@ -203,8 +206,7 @@ export const projects: SwProject[] = [
     tags: ['C / C++', 'PhysiCell', 'Computational Biology', 'HPC'],
     color: 'terra',
     links: [
-      { label: 'DOI', href: 'https://doi.org/10.1109/BIBM58861.2023.10385440' },
-      { label: 'DOI', href: 'https://doi.org/10.1109/TCBB.2022.3191392' },
+      { label: 'BIBM Paper', href: 'https://doi.org/10.1109/BIBM58861.2023.10385440' },
     ],
   },
   {
