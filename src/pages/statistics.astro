@@ -65,6 +65,29 @@ const graph = {
 
 const top = collabs.slice(0, 10).map((c) => ({ ...c, url: links[c.slug]?.url, aff: links[c.slug]?.affiliation }));
 
+// ── collab details for the modal ──────────────────────────────────────────
+interface SharedPub { title: string; year: number; links: { label: string; href: string }[]; }
+interface CollabDetail { name: string; url?: string; affiliation?: string; pubs: SharedPub[]; }
+const collabDetails: Record<string, CollabDetail> = {};
+for (const p of pubs) {
+  for (const a of p.authors) {
+    if (a.isElia) continue;
+    if (!collabDetails[a.slug]) {
+      const info = links[a.slug];
+      collabDetails[a.slug] = {
+        name: a.display,
+        url: info?.url || undefined,
+        affiliation: info?.affiliation || undefined,
+        pubs: [],
+      };
+    }
+    collabDetails[a.slug].pubs.push({ title: p.title, year: p.year, links: p.links });
+  }
+}
+for (const d of Object.values(collabDetails)) {
+  d.pubs.sort((a, b) => b.year - a.year);
+}
+
 // legend: only topics actually assigned to a co-author
 const usedTopics = new Set(graph.nodes.map((n) => n.topic).filter(Boolean));
 const legendTopics = TOPICS.filter((t) => usedTopics.has(t.id));
@@ -132,8 +155,8 @@ const maxYearCites = Math.max(1, ...metrics.perYear.map((p) => p.citations));
       <h2 class="sec-title">Collaboration network</h2>
       <p class="block-intro">
         Every co-author, sized by shared papers, linked when they appear together and coloured by their main area of
-        collaboration. Drag a node, scroll or pinch to zoom, drag the background to pan; hover to focus, click to open a
-        profile where available.
+        collaboration. Drag a node, scroll or pinch to zoom, drag the background to pan; hover to focus, click a node or
+        a name below to open their profile card.
       </p>
 
       <figure class="graph-figure">
@@ -160,9 +183,7 @@ const maxYearCites = Math.max(1, ...metrics.perYear.map((p) => p.citations));
         <ol class="top-list">
           {top.map((c) => (
             <li>
-              {c.url
-                ? <a href={c.url} target="_blank" rel="noopener">{c.name}</a>
-                : <span>{c.name}</span>}
+              <button class="top-collab-btn" data-collab-slug={c.slug}>{c.name}</button>
               <span class="top-count">{c.count} paper{c.count > 1 ? 's' : ''}</span>
               {c.aff && <span class="top-aff">{c.aff}</span>}
             </li>
@@ -173,6 +194,14 @@ const maxYearCites = Math.max(1, ...metrics.perYear.map((p) => p.citations));
   </div>
 
   <script type="application/json" id="graph-data" set:html={JSON.stringify(graph)}></script>
+  <script type="application/json" id="collab-details" set:html={JSON.stringify(collabDetails)}></script>
+
+  <dialog id="collab-modal" class="collab-modal">
+    <div class="cmodal-box">
+      <button class="cmodal-close" id="collab-modal-close" aria-label="Close">×</button>
+      <div id="cmodal-content"></div>
+    </div>
+  </dialog>
 </BaseLayout>
 
 <script>
@@ -180,6 +209,52 @@ const maxYearCites = Math.max(1, ...metrics.perYear.map((p) => p.citations));
 
   interface GNode { id: string; name: string; count: number; elia: boolean; url?: string; topic?: string; x?: number; y?: number; fx?: number | null; fy?: number | null; }
   interface GLink { source: any; target: any; weight: number; }
+  interface CollabPub { title: string; year: number; links: { label: string; href: string }[]; }
+  interface CollabDetail { name: string; url?: string; affiliation?: string; pubs: CollabPub[]; }
+
+  // ── collab modal ──────────────────────────────────────────────────────────
+  const collabDetailsEl = document.getElementById('collab-details');
+  const collabDetails = JSON.parse(collabDetailsEl?.textContent || '{}') as Record<string, CollabDetail>;
+  const collabModal = document.getElementById('collab-modal') as HTMLDialogElement | null;
+  const collabContent = document.getElementById('cmodal-content');
+  const esc = (s: string) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+
+  function openCollabModal(slug: string) {
+    if (!collabModal || !collabContent) return;
+    const d = collabDetails[slug];
+    if (!d) return;
+    let html = `<header class="cmodal-head">`;
+    html += `<h3 class="cmodal-name">${esc(d.name)}</h3>`;
+    if (d.affiliation) html += `<p class="cmodal-aff">${esc(d.affiliation)}</p>`;
+    if (d.url) html += `<a class="cmodal-link" href="${esc(d.url)}" target="_blank" rel="noopener">Profile ↗</a>`;
+    html += `</header>`;
+    if (d.pubs.length > 0) {
+      html += `<div class="cmodal-pubs">`;
+      html += `<p class="cmodal-pubs-head">${d.pubs.length} shared paper${d.pubs.length > 1 ? 's' : ''}</p>`;
+      html += `<ol class="cmodal-pub-list">`;
+      for (const p of d.pubs) {
+        html += `<li class="cmodal-pub">`;
+        html += `<span class="cmodal-pub-meta"><span class="cmodal-pub-year">${p.year}</span>`;
+        if (p.links.length > 0) {
+          for (const l of p.links) {
+            html += `<a class="cmodal-pub-lnk" href="${esc(l.href)}" target="_blank" rel="noopener">${esc(l.label)} ↗</a>`;
+          }
+        }
+        html += `</span>`;
+        html += `<span class="cmodal-pub-title">${p.title}</span>`;
+        html += `</li>`;
+      }
+      html += `</ol></div>`;
+    }
+    collabContent.innerHTML = html;
+    collabModal.showModal();
+  }
+
+  document.getElementById('collab-modal-close')?.addEventListener('click', () => collabModal?.close());
+  collabModal?.addEventListener('click', (e) => { if (e.target === collabModal) collabModal.close(); });
+  document.querySelectorAll<HTMLButtonElement>('[data-collab-slug]').forEach((btn) => {
+    btn.addEventListener('click', () => openCollabModal(btn.dataset.collabSlug!));
+  });
 
   const dataEl = document.getElementById('graph-data');
   const host = document.getElementById('graph');
@@ -265,7 +340,7 @@ const maxYearCites = Math.max(1, ...metrics.perYear.map((p) => p.citations));
       g.appendChild(native);
       gNodes.appendChild(g);
 
-      const open = () => { if (n.url) window.open(n.url, '_blank', 'noopener'); };
+      const open = () => { if (!n.elia) openCollabModal(n.id); };
       let moved = false;
       let down: { x: number; y: number } | null = null;
 
@@ -276,7 +351,7 @@ const maxYearCites = Math.max(1, ...metrics.perYear.map((p) => p.citations));
         down = svgPoint(ev as PointerEvent);
         n.fx = n.x; n.fy = n.y;
         dragNode = n;
-        sim.alphaTarget(0.2).restart();
+        sim.alphaTarget(0.8).restart();
         g.setPointerCapture((ev as PointerEvent).pointerId);
       });
       g.addEventListener('pointermove', (ev) => {
@@ -288,7 +363,7 @@ const maxYearCites = Math.max(1, ...metrics.perYear.map((p) => p.citations));
       });
       const endNode = () => {
         if (dragNode !== n) return;
-        if (!moved && n.url) open();      // click, not a drag → open
+        if (!moved && !n.elia) open();    // click, not a drag → open modal
         if (!n.elia) { n.fx = null; n.fy = null; }
         dragNode = null;
         sim.alphaTarget(0);
@@ -576,10 +651,73 @@ const maxYearCites = Math.max(1, ...metrics.perYear.map((p) => p.citations));
   .top-head { font-family: var(--serif); font-size: 1.15rem; color: var(--ink); margin: 0 0 12px; }
   .top-list { margin: 0; padding-left: 1.4em; display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px 24px; }
   .top-list li { color: var(--ink-soft); }
-  .top-list a { color: var(--ink); }
-  .top-list a:hover { color: var(--teal); }
+  .top-collab-btn {
+    background: none;
+    border: none;
+    padding: 0;
+    font: inherit;
+    color: var(--ink);
+    cursor: pointer;
+    text-align: left;
+    text-decoration: underline;
+    text-decoration-color: transparent;
+    transition: color 0.15s, text-decoration-color 0.15s;
+  }
+  .top-collab-btn:hover { color: var(--teal); text-decoration-color: var(--teal); }
   .top-count { font-family: var(--mono); font-size: 0.74rem; color: var(--muted); margin-left: 8px; }
   .top-aff { font-family: var(--mono); font-size: 0.72rem; color: var(--muted); display: block; }
+
+  /* ── co-author modal ── */
+  :global(.collab-modal) {
+    background: var(--panel);
+    border: 1px solid var(--rule);
+    border-radius: 14px;
+    padding: 0;
+    max-width: 520px;
+    width: 90vw;
+    max-height: 82vh;
+    overflow-y: auto;
+    color: var(--ink);
+  }
+  :global(.collab-modal::backdrop) {
+    background: rgba(0, 0, 0, 0.45);
+    backdrop-filter: blur(3px);
+  }
+  :global(.cmodal-box) { padding: 22px 24px 26px; position: relative; }
+  :global(.cmodal-close) {
+    position: absolute; top: 14px; right: 16px;
+    background: none; border: none; color: var(--muted);
+    font-size: 1.3rem; line-height: 1; cursor: pointer;
+    padding: 2px 7px; border-radius: 6px;
+  }
+  :global(.cmodal-close:hover) { color: var(--ink); background: var(--panel-2); }
+  :global(.cmodal-head) { margin-bottom: 16px; padding-right: 2em; }
+  :global(.cmodal-name) { font-family: var(--serif); font-size: 1.25rem; color: var(--ink); margin: 0 0 4px; }
+  :global(.cmodal-aff) { font-family: var(--mono); font-size: 0.78rem; color: var(--muted); margin: 0 0 8px; }
+  :global(.cmodal-link) {
+    display: inline-block;
+    font-family: var(--mono); font-size: 0.74rem; color: var(--teal);
+    border: 1px solid var(--rule); border-radius: 20px;
+    padding: 3px 10px;
+  }
+  :global(.cmodal-link:hover) { text-decoration: underline; border-color: var(--teal); }
+  :global(.cmodal-pubs) { border-top: 1px solid var(--rule-soft); padding-top: 14px; }
+  :global(.cmodal-pubs-head) {
+    font-family: var(--mono); font-size: 0.72rem; text-transform: uppercase;
+    letter-spacing: 0.06em; color: var(--muted); margin: 0 0 10px;
+  }
+  :global(.cmodal-pub-list) { margin: 0; padding-left: 0; list-style: none; display: flex; flex-direction: column; gap: 10px; }
+  :global(.cmodal-pub) { display: flex; flex-direction: column; gap: 3px; }
+  :global(.cmodal-pub-meta) { display: flex; align-items: center; gap: 8px; }
+  :global(.cmodal-pub-year) { font-family: var(--mono); font-size: 0.72rem; color: var(--muted); flex-shrink: 0; }
+  :global(.cmodal-pub-lnk) {
+    font-family: var(--mono); font-size: 0.68rem; color: var(--teal);
+    border: 1px solid var(--rule); border-radius: 20px; padding: 1px 7px;
+    white-space: nowrap;
+  }
+  :global(.cmodal-pub-lnk:hover) { border-color: var(--teal); text-decoration: underline; }
+  :global(.cmodal-pub-title) { font-size: 0.88rem; color: var(--ink-soft); line-height: 1.4; }
+  :global(.cmodal-pub-title :global(.me)) { font-style: italic; }
 
   @media (max-width: 760px) {
     .stat-grid { grid-template-columns: repeat(2, 1fr); }
