@@ -1,5 +1,5 @@
 ---
-import { teaching, students } from '@/data/teaching';
+import { teaching, students, type CourseDetail } from '@/data/teaching';
 
 interface Props { lang: 'en' | 'it'; }
 const { lang } = Astro.props;
@@ -13,20 +13,51 @@ const T = {
     thesis: 'Thesis',
     cosup: 'Co-supervisor',
     tbd: 'title to be defined',
+    info: 'info',
+    close: 'Close',
   },
   it: {
-    lead: 'Corsi, didattica integrativa e tutoraggio presso l’Università Roma Tre e il Master in Data Analytics — con gli studenti di cui sono stato relatore.',
+    lead: "Corsi, didattica integrativa e tutoraggio presso l'Università Roma Tre e il Master in Data Analytics — con gli studenti di cui sono stato relatore.",
     students: 'Studenti',
     studentsLead: 'Tesi seguite, dalla più recente.',
     current: 'in corso',
     thesis: 'Tesi',
     cosup: 'Relatore interno',
     tbd: 'titolo da definire',
+    info: 'info',
+    close: 'Chiudi',
   },
 }[lang];
 
+const DL: Record<keyof CourseDetail, string> = lang === 'it' ? {
+  università:  'Università',
+  dipartimento: 'Dipartimento',
+  corsoStudio: 'Corso di studio',
+  periodi:     'Periodi di erogazione',
+  curriculum:  'Curriculum',
+  ambito:      'Ambito disciplinare',
+  attività:    'Attività',
+  ore:         'Ore',
+  cfu:         'CFU',
+} : {
+  università:  'University',
+  dipartimento: 'Department',
+  corsoStudio: 'Programme',
+  periodi:     'Periods',
+  curriculum:  'Curriculum',
+  ambito:      'Disciplinary scope',
+  attività:    'Activity type',
+  ore:         'Hours',
+  cfu:         'ECTS (CFU)',
+};
+
+const detailKeys: (keyof CourseDetail)[] = [
+  'università', 'dipartimento', 'corsoStudio', 'periodi',
+  'curriculum', 'ambito', 'attività', 'ore', 'cfu',
+];
+
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-const MESI = ['Gen', 'Feb', 'Mar', 'Apr', 'Mag', 'Giu', 'Lug', 'Ago', 'Set', 'Ott', 'Nov', 'Dic'];
+const MESI   = ['Gen', 'Feb', 'Mar', 'Apr', 'Mag', 'Giu', 'Lug', 'Ago', 'Set', 'Ott', 'Nov', 'Dic'];
 const fmt = (iso: string) => {
   if (iso === 'current') return T.current;
   const [y, m, d] = iso.split('-');
@@ -40,26 +71,66 @@ const sortedStudents = [...students].sort((a, b) => {
 ---
 <p class="lead">{T.lead}</p>
 
-{teaching.map((g) => (
+{teaching.map((g, gi) => (
   <section class="tgroup">
     <header class="tgroup-head">
       <h2 class="tgroup-kind">{g.kind[lang]}</h2>
       <span class="tgroup-meta">{g.org[lang]} · {g.period}</span>
     </header>
     <ul class="course-list" role="list">
-      {g.courses.map((c) => (
-        <li class="course">
-          <span class="course-year">{c.year}</span>
-          <div class="course-body">
-            <p class="course-name">
-              {c.code && <span class="course-code">{c.code}</span>}
-              {c.name[lang]}
-              {c.ssd && <span class="course-ssd">{c.ssd}</span>}
-            </p>
-            <span class="course-prog">{c.programme}</span>
-          </div>
-        </li>
-      ))}
+      {g.courses.map((c, ci) => {
+        const modalId = `m${gi}${ci}`;
+        return (
+          <li class="course">
+            <span class="course-year">{c.year}</span>
+            <div class="course-body">
+              <p class="course-name">
+                {c.code && <span class="course-code">{c.code}</span>}
+                {c.name[lang]}
+                {c.ssd && <span class="course-ssd">{c.ssd}</span>}
+              </p>
+              <span class="course-prog">{c.programme}</span>
+              {(c.links?.length || c.detail) && (
+                <div class="course-links">
+                  {c.links?.map((l) => (
+                    <a class="course-lnk" href={l.href} target="_blank" rel="noopener">{l.label} ↗</a>
+                  ))}
+                  {c.detail && (
+                    <button class="course-info" data-modal={modalId}>{T.info}</button>
+                  )}
+                </div>
+              )}
+            </div>
+            {c.detail && (
+              <dialog id={modalId} class="course-modal">
+                <div class="modal-box">
+                  <button class="modal-close" data-close-modal aria-label={T.close}>×</button>
+                  <header class="modal-head">
+                    {c.code && <span class="modal-code">{c.code}</span>}
+                    <h3 class="modal-name">{c.name[lang]}</h3>
+                    <p class="modal-sub">{c.year} · {c.programme}</p>
+                  </header>
+                  {c.links && c.links.length > 0 && (
+                    <div class="modal-links">
+                      {c.links.map((l) => (
+                        <a class="modal-lnk" href={l.href} target="_blank" rel="noopener">{l.label} ↗</a>
+                      ))}
+                    </div>
+                  )}
+                  <dl class="modal-dl">
+                    {detailKeys.filter((k) => c.detail![k]).map((k) => (
+                      <>
+                        <dt>{DL[k]}</dt>
+                        <dd>{c.detail![k]}</dd>
+                      </>
+                    ))}
+                  </dl>
+                </div>
+              </dialog>
+            )}
+          </li>
+        );
+      })}
     </ul>
   </section>
 ))}
@@ -87,6 +158,26 @@ const sortedStudents = [...students].sort((a, b) => {
     ))}
   </ul>
 </section>
+
+<script>
+  // open modals
+  document.querySelectorAll<HTMLButtonElement>('[data-modal]').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const id = btn.dataset.modal!;
+      (document.getElementById(id) as HTMLDialogElement | null)?.showModal();
+    });
+  });
+  // close on ×
+  document.querySelectorAll<HTMLButtonElement>('[data-close-modal]').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      btn.closest<HTMLDialogElement>('dialog')?.close();
+    });
+  });
+  // close on backdrop click
+  document.querySelectorAll<HTMLDialogElement>('.course-modal').forEach((d) => {
+    d.addEventListener('click', (e) => { if (e.target === d) d.close(); });
+  });
+</script>
 
 <style>
   .lead { color: var(--ink-soft); max-width: 64ch; line-height: 1.6; margin: 0 0 32px; }
@@ -117,14 +208,116 @@ const sortedStudents = [...students].sort((a, b) => {
   .course-year { font-family: var(--mono); font-size: 0.78rem; color: var(--muted); padding-top: 1px; }
   .course-body { display: flex; flex-direction: column; gap: 2px; }
   .course-name { font-family: var(--serif); font-size: 1rem; color: var(--ink); margin: 0; }
-  .course-code {
-    font-family: var(--mono);
-    font-size: 0.78rem;
-    color: var(--teal);
-    margin-right: 8px;
-  }
-  .course-ssd { font-family: var(--mono); font-size: 0.72rem; color: var(--muted); margin-left: 8px; }
+  .course-code { font-family: var(--mono); font-size: 0.78rem; color: var(--teal); margin-right: 8px; }
+  .course-ssd  { font-family: var(--mono); font-size: 0.72rem; color: var(--muted); margin-left: 8px; }
   .course-prog { font-family: var(--mono); font-size: 0.74rem; color: var(--muted); }
+
+  /* inline links row */
+  .course-links {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 2px 0;
+    margin-top: 4px;
+  }
+  .course-lnk {
+    font-family: var(--mono);
+    font-size: 0.72rem;
+    color: var(--teal);
+    padding: 1px 8px 1px 0;
+  }
+  .course-lnk:hover { text-decoration: underline; }
+  .course-lnk + .course-lnk::before,
+  .course-info::before { content: '·'; margin-right: 8px; color: var(--rule); }
+  .course-info {
+    font-family: var(--mono);
+    font-size: 0.72rem;
+    color: var(--muted);
+    background: none;
+    border: 1px solid var(--rule);
+    border-radius: 20px;
+    padding: 0px 7px;
+    cursor: pointer;
+    transition: color 0.15s, border-color 0.15s;
+  }
+  .course-info:hover { color: var(--ink); border-color: var(--muted); }
+
+  /* modal dialog */
+  .course-modal {
+    background: var(--panel);
+    border: 1px solid var(--rule);
+    border-radius: 14px;
+    padding: 0;
+    max-width: 520px;
+    width: 90vw;
+    max-height: 85vh;
+    overflow-y: auto;
+    color: var(--ink);
+  }
+  .course-modal::backdrop {
+    background: rgba(0, 0, 0, 0.45);
+    backdrop-filter: blur(3px);
+  }
+  .modal-box { padding: 22px 24px 26px; position: relative; }
+  .modal-close {
+    position: absolute;
+    top: 14px; right: 16px;
+    background: none;
+    border: none;
+    color: var(--muted);
+    font-size: 1.3rem;
+    line-height: 1;
+    cursor: pointer;
+    padding: 2px 7px;
+    border-radius: 6px;
+  }
+  .modal-close:hover { color: var(--ink); background: var(--panel-2); }
+  .modal-head { margin-bottom: 14px; padding-right: 2em; }
+  .modal-code { font-family: var(--mono); font-size: 0.76rem; color: var(--teal); }
+  .modal-name { font-family: var(--serif); font-size: 1.2rem; color: var(--ink); margin: 4px 0 2px; }
+  .modal-sub  { font-family: var(--mono); font-size: 0.76rem; color: var(--muted); margin: 0; }
+
+  /* links inside modal */
+  .modal-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 16px;
+    padding-bottom: 14px;
+    border-bottom: 1px solid var(--rule-soft);
+  }
+  .modal-lnk {
+    font-family: var(--mono);
+    font-size: 0.74rem;
+    color: var(--teal);
+    border: 1px solid var(--rule);
+    border-radius: 20px;
+    padding: 3px 10px;
+    white-space: nowrap;
+  }
+  .modal-lnk:hover { text-decoration: underline; border-color: var(--teal); }
+
+  /* detail definition list */
+  .modal-dl {
+    display: grid;
+    grid-template-columns: 11em 1fr;
+    gap: 6px 12px;
+    margin: 0;
+  }
+  .modal-dl dt {
+    font-family: var(--mono);
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--muted);
+    padding-top: 1px;
+  }
+  .modal-dl dd {
+    font-size: 0.86rem;
+    color: var(--ink-soft);
+    margin: 0;
+    line-height: 1.45;
+  }
 
   /* students */
   .stud-list { list-style: none; margin: 0; padding: 0; }
@@ -138,17 +331,19 @@ const sortedStudents = [...students].sort((a, b) => {
   }
   .stud:hover { border-left-color: var(--gold); }
   .stud--current { border-left-color: var(--gold); }
-  .stud-date { font-family: var(--mono); font-size: 0.78rem; color: var(--muted); padding-top: 2px; }
-  .stud-name { font-family: var(--serif); font-weight: 700; font-size: 1.05rem; color: var(--ink); margin: 0; }
+  .stud-date   { font-family: var(--mono); font-size: 0.78rem; color: var(--muted); padding-top: 2px; }
+  .stud-name   { font-family: var(--serif); font-weight: 700; font-size: 1.05rem; color: var(--ink); margin: 0; }
   .stud-degree { font-family: var(--mono); font-size: 0.76rem; color: var(--muted); margin: 1px 0 5px; }
   .stud-thesis { font-size: 0.9rem; color: var(--ink-soft); line-height: 1.45; margin: 0; }
   .stud-thesis em { font-style: italic; }
-  .stud-label { color: var(--muted); }
-  .stud-tbd { color: var(--muted); font-style: italic; }
-  .stud-cosup { font-family: var(--mono); font-size: 0.74rem; color: var(--muted); }
+  .stud-label  { color: var(--muted); }
+  .stud-tbd    { color: var(--muted); font-style: italic; }
+  .stud-cosup  { font-family: var(--mono); font-size: 0.74rem; color: var(--muted); }
 
   @media (max-width: 640px) {
     .course, .stud { grid-template-columns: 1fr; }
     .course-year, .stud-date { padding-top: 0; }
+    .modal-dl { grid-template-columns: 1fr; gap: 2px 0; }
+    .modal-dl dt { margin-top: 8px; }
   }
 </style>
