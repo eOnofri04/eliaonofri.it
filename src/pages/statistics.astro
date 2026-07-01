@@ -351,7 +351,7 @@ const maxYearCites = Math.max(1, ...metrics.perYear.map((p) => p.citations));
         down = svgPoint(ev as PointerEvent);
         n.fx = n.x; n.fy = n.y;
         dragNode = n;
-        sim.alphaTarget(0.8).restart();
+        sim.alphaTarget(0.4).restart();
         g.setPointerCapture((ev as PointerEvent).pointerId);
       });
       g.addEventListener('pointermove', (ev) => {
