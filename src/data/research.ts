@@ -46,6 +46,7 @@ export const projects: Project[] = [
     org: 'IAC · CNR',
     period: '2023 – 2024',
     grant: 'EU Horizon · G.A. 101095672',
+    url: 'https://praesiidium.spindoxlabs.com',
     blurb:
       'Development of a mathematical and computational multi-scale model for the in-silico simulation of the immune-system response.',
     color: 'terra',
@@ -98,7 +99,7 @@ export interface Talk {
 }
 
 export const talks: Talk[] = [
-  { date: '2026-07-09', title: 'A Geometric Analysis of Small-sized Language Model Hallucinations', event: 'ICML 2026', location: 'Seoul, South Korea', kind: 'Talk', links: [{ label: 'slides', href: 'https://drive.google.com/file/d/1rPsIDx5I4Ql5q8mNYKtCWN1bPQoHj58I/view?usp=sharing' }] },
+  { date: '2026-07-09', title: 'A Geometric Analysis of Small-sized Language Model Hallucinations', event: 'ICML 2026', location: 'Seoul, South Korea', kind: 'Talk', links: [{ label: 'slides', href: 'https://drive.google.com/file/d/1rPsIDx5I4Ql5q8mNYKtCWN1bPQoHj58I/view?usp=sharing' }, { label: 'poster', href: 'https://icml.cc/media/PosterPDFs/ICML%202026/66248.png?t=1781524324.4346218' }, { label: 'video', href: 'https://icml.cc/virtual/2026/poster/66248' }] },
   { date: '2026-05-14', title: 'Git: a 40-minute primer for researchers', event: 'CRI-Lab, KAUST', location: 'Saudi Arabia', kind: 'Seminar', links: [{ label: 'slides', href: 'https://drive.google.com/file/d/1F3gyIxhNs71pejtbHP6MTNAlwiYUyHR_/view?usp=sharing' }] },
   { date: '2026-04-22', title: 'Quantum & Post-Quantum Cryptography', event: 'CRI-Lab Quantum Masterclass, KAUST', location: 'Saudi Arabia', kind: 'Invited talk', links: [{ label: 'slides', href: 'https://drive.google.com/file/d/1iTysF3ONe_xV-zdbhfmMMrNfNhKqCFM-/view?usp=sharing' }] },
   { date: '2026-04-14', title: 'I-(OT)²', event: 'Applied Cryptography course, KAUST', location: 'Saudi Arabia', kind: 'Invited lesson', links: [{ label: 'slides', href: 'https://drive.google.com/file/d/1WktAZnvTcGtNOD0ZQcqz6Lh3qPWOI-G9/view?usp=sharing' }] },
@@ -180,9 +181,13 @@ export const service: ServiceBlock[] = [
       {
         label: 'Conference referee',
         tags: [
+          { name: 'NeurIPS', detail: '2026' },
+          { name: 'ICML', detail: '2026' },
+          { name: 'ICBC', detail: '2026' },
           { name: 'ESORICS', detail: '2026' },
           { name: 'IEEE SECON', detail: '2026' },
           { name: 'IEEE/ACM CCGrid', detail: '2026' },
+          { name: 'YAMC', detail: '2024–26' },
           { name: 'IEEE BIBM', detail: '2024' },
           { name: 'VEHITS', detail: '2024' },
           { name: 'ANT', detail: '2021–22' },
@@ -198,7 +203,7 @@ export const service: ServiceBlock[] = [
       { role: 'Scientific Committee', org: 'Master in Data Analytics, Roma Tre', detail: 'since 2025', url: 'https://master-data-analytics.it' },
       { role: 'General Program Chair', org: 'Young Applied Mathematicians Conference (YAMC 2026)', detail: 'Turin, Italy', url: 'https://www.yamc.it' },
       { role: 'PC Member', org: 'NET-AI-BHI workshop @ IEEE BIBM', detail: 'Dallas 2026 · Wuhan 2025 · Lisbon 2024' },
-      { role: 'Programme & Organising', org: 'Young Applied Mathematicians Conference (YAMC)', detail: 'Padua 2025 · Rome 2024' },
+      { role: 'Programme & Organising', org: 'Young Applied Mathematicians Conference (YAMC)', detail: 'Padua 2025 · Rome 2024', url: 'https://sites.google.com/view/yamc/previous-editions' },
       { role: 'Scientific Committee', org: 'IXH24 — Italian XRPL Hackathon', detail: 'secondary-schools session · Rome 2024', url: 'https://www.decifris.it/ixh24' },
       { role: 'PC Member', org: 'Int. Conf. on Ambient Systems, Networks and Technologies (ANT)', detail: 'Systems Security & Privacy · 2021–22' },
       { role: 'PC Member', org: 'Int. Conf. on Emerging Ubiquitous Systems and Pervasive Networks (EUSPN)', detail: 'Security, Privacy & Trust · 2020–21' },
@@ -209,9 +214,9 @@ export const service: ServiceBlock[] = [
     heading: 'Organising — events & seminar cycles',
     roles: [
       { role: 'Organiser', org: 'Kitware Visualization Toolkit (VTK) course, 30 h', detail: 'IAC-CNR · H2IOSC · 2025' },
-      { role: 'Organiser', org: 'Tè di Matematica — seminar cycle', detail: 'Roma Tre · 2022–24' },
-      { role: 'Organiser', org: 'Junior Seminars — Ph.D. seminar cycle', detail: 'Roma Tre · 2022–24' },
-      { role: 'Co-founder', org: 'General Topics in Mathematics (GTM) — Ph.D. seminar cycle', detail: 'Roma Tre · 2021–22' },
+      { role: 'Organiser', org: 'Tè di Matematica — seminar cycle', detail: 'Roma Tre · 2022–24', url: 'http://ricerca.mat.uniroma3.it/seminari/te_di_matematica.html' },
+      { role: 'Organiser', org: 'Junior Seminars — Ph.D. seminar cycle', detail: 'Roma Tre · 2022–24', url: 'http://ricerca.mat.uniroma3.it/seminari/junior_seminars.html' },
+      { role: 'Co-founder', org: 'General Topics in Mathematics (GTM) — Ph.D. seminar cycle', detail: 'Roma Tre · 2021–22', url: 'https://sites.google.com/view/gtm-r3/home' },
     ],
   },
 ];
