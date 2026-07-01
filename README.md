@@ -4,6 +4,8 @@ Source for [eliaonofri.it](https://eliaonofri.it) — a static site built with [
 
 ## Local development
 
+Requires **Node ≥ 22.12** (Astro 7).
+
 ```bash
 npm install
 npm run dev        # http://localhost:4321
