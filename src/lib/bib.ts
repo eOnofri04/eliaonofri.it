@@ -199,11 +199,19 @@ function deriveLinks(e: RawEntry): PubLink[] {
   const f = e.fields;
   const links: PubLink[] = [];
   if (f.doi) links.push({ label: 'DOI', href: `https://doi.org/${f.doi}` });
+  if (f.url) links.push({ label: f.url.toLowerCase().endsWith('.pdf') ? 'PDF' : 'url', href: f.url });
   const note = f.note ?? '';
   const arxiv = note.match(/\\arxiv\{(?:arXiv:)?([^}]+)\}/i);
   if (arxiv) links.push({ label: 'arXiv', href: `https://arxiv.org/abs/${arxiv[1].trim()}` });
   const eprint = note.match(/\\eprint\{([^}]+)\}/i);
   if (eprint) links.push({ label: 'ePrint', href: `https://eprint.iacr.org/${eprint[1].trim()}` });
+  for (const m of note.matchAll(/\\href\{([^}]+)\}\{([^}]*)\}/g)) {
+    const raw = m[2];
+    const opens = (raw.match(/\{/g) ?? []).length;
+    const closes = (raw.match(/\}/g) ?? []).length;
+    const label = latexToText(raw + '}'.repeat(opens - closes)).trim() || 'link';
+    links.push({ label, href: m[1].trim() });
+  }
   return links;
 }
 
