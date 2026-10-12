@@ -1,10 +1,10 @@
 # eliaonofri.it
 
-Source for [eliaonofri.it](https://eliaonofri.it) — a static site built with [Astro](https://astro.build) and deployed to GitHub Pages.
+Source of [eliaonofri.it](https://eliaonofri.it), a static [Astro](https://astro.build) site deployed to GitHub Pages.
 
 ## Local development
 
-Requires **Node ≥ 22.12** (Astro 7).
+Node 22.12 or later (Astro 7).
 
 ```bash
 npm install
@@ -14,30 +14,30 @@ npm run dev        # http://localhost:4321
 ## Build & deploy
 
 ```bash
-npm run build      # output → dist/
+npm run build      # into dist/
 npm run preview    # preview the production build locally
 ```
 
-Pushing to `main` triggers the GitHub Actions workflow in `.github/workflows/deploy.yml`, which builds the site and publishes it to GitHub Pages automatically.
+A push to `main` runs `.github/workflows/deploy.yml`, which builds the site and publishes it to GitHub Pages.
 
 ## CV repository (`CV_repo/`)
 
-The CV's LaTeX sources are expected in `CV_repo/`, a separate git repository cloned inside this one and git-ignored here.
-The site uses only two things from it:
+The LaTeX sources of the CV live in `CV_repo/`, a separate repository cloned here and git-ignored.
+The site takes two things from it:
 
-- `bibdesk-database.bib` — the single source of truth for publications;
-- `CV_Onofri_light.pdf` and `CV_Onofri_dark.pdf` — the compiled CVs, if present.
+- `bibdesk-database.bib`, the publication list;
+- `CV_Onofri_light.pdf` and `CV_Onofri_dark.pdf`, the compiled CVs, when present.
 
 ```bash
-npm run sync:bib   # CV_repo/bibdesk-database.bib → src/data/publications.bib
-npm run sync:cv    # the above, plus the two CV PDFs → public/cv/ (skipped when absent)
+npm run sync:bib   # copies the bib to src/data/publications.bib
+npm run sync:cv    # the same, plus the two PDFs to public/cv/
 ```
 
 The copies are committed, so the CI build does not need `CV_repo/`.
 
 ## Updating content
 
-See [UPDATING.md](UPDATING.md) for which file drives each section and how to add talks, publications, gallery pieces, and so on.
+[UPDATING.md](UPDATING.md) says which file drives each section, and [TAXONOMY.md](TAXONOMY.md) lists the topic keywords.
 
 ## Stack
 
@@ -49,4 +49,5 @@ See [UPDATING.md](UPDATING.md) for which file drives each section and how to add
 
 ## Licence
 
-Code is MIT. Content (text, artworks, data) is CC BY-NC-SA 4.0. See [LICENSE](LICENSE) for details.
+Code under MIT; content (text, figures, data) under CC BY-NC-SA 4.0.
+See [LICENSE](LICENSE).
