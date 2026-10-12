@@ -2,9 +2,11 @@
 import { getCollection } from 'astro:content';
 import BaseLayout from '@/layouts/BaseLayout.astro';
 import GalleryCard from '@/components/GalleryCard.astro';
-import { getPublications, TOPIC_GROUPS, topicLabel } from '@/lib/bib';
+import FacetFilters from '@/components/FacetFilters.astro';
+import { getPublications } from '@/lib/bib';
+import { classify, merge, usedFacets } from '@/lib/taxonomy';
 
-// A piece may name its paper by bib key; year, tag and filter groups then come from the bib.
+// A piece may name its paper by bib key; its date and classification then come from the bib.
 const pubs = new Map(getPublications().map((p) => [p.key, p]));
 const entries = await getCollection('gallery');
 
@@ -13,20 +15,25 @@ const pieces = entries
     const key = e.data.source?.trim() || undefined;
     const pub = key ? pubs.get(key) : undefined;
     if (key && !pub) throw new Error(`[gallery] ${e.id}: unknown bib key "${key}"`);
-    const lastTopic = pub?.topics[pub.topics.length - 1];
+    const cls = merge(pub?.cls ?? classify([]), classify(e.data.topics ?? [], e.id));
+    const tagChip = cls.chips.find((c) => c.facet === 'app') ?? cls.chips[0];
+    const pubDate = pub?.year ? `${pub.year}${pub.month ? '-' + String(pub.month).padStart(2, '0') : ''}` : '';
+    const date = e.data.date ?? pubDate;
     return {
       id: e.id,
       ...e.data,
       source: key,
-      year: pub?.year ?? e.data.year ?? 0,
-      tag: lastTopic ? topicLabel(lastTopic) : (e.data.tag ?? 'Research'),
-      groups: pub?.groups ?? e.data.groups ?? [],
+      date,
+      year: pub?.year ?? (parseInt(date.slice(0, 4), 10) || 0),
+      cls,
+      tag: tagChip ? (tagChip.sub ?? tagChip.label) : 'Research',
       sourceTitle: pub ? pub.title.replace(/<[^>]+>/g, '') : '',
     };
   })
-  .sort((a, b) => (a.order ?? 99) - (b.order ?? 99) || b.year - a.year || a.title.localeCompare(b.title));
+  // newest first; undated pieces last
+  .sort((a, b) => b.date.localeCompare(a.date) || a.title.localeCompare(b.title));
 
-const filters = TOPIC_GROUPS.filter((g) => pieces.some((p) => p.groups.includes(g.id)));
+const facets = usedFacets(pieces.map((p) => p.cls));
 ---
 <BaseLayout title="Gallery" description="Scientific figures presented as artworks.">
   <div class="wrap page-body">
@@ -37,10 +44,7 @@ const filters = TOPIC_GROUPS.filter((g) => pieces.some((p) => p.groups.includes(
       stand on their own. Each links back to the work it came from.
     </p>
 
-    <div class="filters" id="gal-filters">
-      <button class="chip active" data-filter="all">All</button>
-      {filters.map((g) => <button class="chip" data-filter={g.id}>{g.label}</button>)}
-    </div>
+    <FacetFilters target="gal-grid" fields={facets.fields} apps={facets.apps} />
 
     <div class="gal-grid" id="gal-grid">
       {pieces.map((p) => (
@@ -56,7 +60,7 @@ const filters = TOPIC_GROUPS.filter((g) => pieces.some((p) => p.groups.includes(
           year={p.year}
           sourceKey={p.source}
           sourceTitle={p.sourceTitle}
-          groups={p.groups}
+          cls={p.cls}
         />
       ))}
     </div>
@@ -92,22 +96,6 @@ const filters = TOPIC_GROUPS.filter((g) => pieces.some((p) => p.groups.includes(
     color: var(--ink-soft);
     font-size: 1.05rem;
     margin: 0 0 26px;
-  }
-  .filters {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-    margin-bottom: 30px;
-  }
-  .filters .chip {
-    cursor: pointer;
-    background: none;
-    border: 1px solid var(--rule);
-  }
-  .filters .chip.active {
-    color: var(--ink);
-    border-color: var(--teal);
-    background: var(--teal-tint);
   }
   /* masonry via columns: figures keep their native aspect ratio */
   .gal-grid {
@@ -178,20 +166,7 @@ const filters = TOPIC_GROUPS.filter((g) => pieces.some((p) => p.groups.includes(
 
 <script>
   const grid = document.getElementById('gal-grid')!;
-  const btns = document.querySelectorAll<HTMLButtonElement>('#gal-filters .chip');
   const cards = [...grid.querySelectorAll<HTMLElement>('.card')];
-
-  btns.forEach((btn) => {
-    btn.addEventListener('click', () => {
-      btns.forEach((b) => b.classList.remove('active'));
-      btn.classList.add('active');
-      const f = btn.dataset.filter ?? 'all';
-      cards.forEach((card) => {
-        const groups = (card.dataset.groups ?? '').split(' ');
-        card.hidden = !(f === 'all' || groups.includes(f));
-      });
-    });
-  });
 
   // Lightbox: steps through the currently visible cards only.
   const lb = document.getElementById('lightbox') as HTMLDialogElement;

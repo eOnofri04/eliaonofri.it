@@ -2,6 +2,8 @@
 // A gallery piece: the figure on a light mat (figures are drawn for white paper,
 // so the mat stays light in both themes), then title, caption and provenance.
 // Clicking the figure opens the page-level lightbox.
+import type { Classification } from '@/lib/taxonomy';
+
 interface Props {
   id: string;
   title: string;
@@ -14,11 +16,11 @@ interface Props {
   year: number;
   sourceKey?: string;   // absent for pieces not tied to a paper
   sourceTitle: string;
-  groups: string[];
+  cls: Classification;
 }
-const { id, title, caption, alt, image, width, height, tag, year, sourceKey, sourceTitle, groups } = Astro.props;
+const { id, title, caption, alt, image, width, height, tag, year, sourceKey, sourceTitle, cls } = Astro.props;
 ---
-<article class="card" id={id} data-groups={groups.join(' ')}>
+<article class="card" id={id} data-fields={cls.fields.join(' ')} data-apps={cls.apps.join(' ')}>
   <button class="mat" type="button" data-lightbox aria-label={`Enlarge: ${title}`}>
     <img src={image} alt={alt} width={width} height={height} loading="lazy" decoding="async" />
   </button>
