@@ -258,6 +258,8 @@ export interface Student {
 }
 
 export const students: Student[] = [
+  { name: 'Simone Maione', degree: { en: 'M.Sc. Computational Sciences (LM-40)', it: 'Laurea Magistrale in Scienze Computazionali (LM-40)' }, date: 'current', coSupervisor: 'Flavio Lombardi' },
+  { name: 'Michela Rossi', degree: { en: 'M.Sc. Computational Sciences (LM-40)', it: 'Laurea Magistrale in Scienze Computazionali (LM-40)' }, date: 'current', coSupervisor: 'Flavio Lombardi' },
   { name: 'Davide Sabatini', degree: { en: 'M.Sc. Mathematics (LM-40)', it: 'Laurea Magistrale in Matematica (LM-40)' }, date: 'current' },
   { name: 'Augusta Gioia Vallifuoco', degree: { en: 'M.Sc. Computational Sciences (LM-40)', it: 'Laurea Magistrale in Scienze Computazionali (LM-40)' }, date: '2025-03-07', thesis: 'Estensione di uno Schema KP-ABE basato su Reticoli: Implementazione e Analisi del Meccanismo di Revoca' },
   { name: 'Serena Massarone', degree: { en: 'M.Sc. Computational Sciences (LM-40)', it: 'Laurea Magistrale in Scienze Computazionali (LM-40)' }, date: '2025-01-13', thesis: 'A Systematic Analysis of Scale-Free Effects on Coloured Graph Contraction' },

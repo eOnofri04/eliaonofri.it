@@ -187,6 +187,7 @@ export const service: ServiceBlock[] = [
       {
         label: 'Conference referee',
         tags: [
+          { name: 'ICLR', detail: '2026' },
           { name: 'NeurIPS', detail: '2026' },
           { name: 'ICML', detail: '2026' },
           { name: 'ICBC', detail: '2026' },

@@ -230,8 +230,9 @@ function deriveLinks(e: RawEntry): PubLink[] {
   return links;
 }
 
-/** Uniform venue for entries under review, named after the preprint server. */
+/** Venue for entries under review: the bib `journal` if given, else the preprint server. */
 function preprintVenue(e: RawEntry, links: PubLink[]): string {
+  if (e.fields.journal) return latexToHtml(e.fields.journal);
   if (links.some((l) => l.label === 'arXiv')) return 'arXiv preprint';
   if (/^10\.(1101|64898)\//.test(e.fields.doi ?? '')) return 'bioRxiv preprint';
   return 'Preprint';
@@ -278,7 +279,8 @@ export function getPublications(): Publication[] {
       authors,
       authorsHtml: formatAuthors(authors, correspondingMatcher(e.fields.corresponding, pubType)),
       title: latexToHtml(e.fields.title) + (toappear ? ' <span class="pub-flag">to appear</span>' : ''),
-      venue: under ? preprintVenue(e, links) : deriveVenue(e),
+      // a "[To appear]" suffix in the venue is redundant with the title flag
+      venue: under ? preprintVenue(e, links) : deriveVenue(e).replace(/\s*\[to appear\]\s*$/i, ''),
       year: parseInt(e.fields.year ?? '0', 10) || 0,
       month: parseInt((e.fields.month ?? '0').replace(/[^\d]/g, ''), 10) || 0,
       // under review: the section already says "submitted"; unpublished: the venue carries the note

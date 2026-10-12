@@ -6,7 +6,7 @@ import { APPLICATIONS, FIELDS } from '@/lib/taxonomy';
 import collaborators from '@/data/collaborators.json';
 import metrics from '@/data/metrics.json';
 
-type LinkInfo = { name: string; url?: string; affiliation?: string; topic?: string };
+type LinkInfo = { name: string; url?: string; affiliation?: string };
 const links = collaborators as Record<string, LinkInfo>;
 
 // Graph colours follow the application (src/lib/taxonomy.ts). Each co-author is
@@ -41,7 +41,7 @@ for (const p of pubs) {
     if (a.isElia) continue;
     if (!nodeMap.has(a.slug)) {
       const info = links[a.slug];
-      nodeMap.set(a.slug, { id: a.slug, name: a.display, count: 0, elia: false, url: info?.url || undefined, topic: info?.topic || undefined });
+      nodeMap.set(a.slug, { id: a.slug, name: a.display, count: 0, elia: false, url: info?.url || undefined });
     }
     nodeMap.get(a.slug)!.count++;
     ids.push(a.slug);
@@ -65,8 +65,6 @@ for (const n of nodeMap.values()) {
       .map(([id, w]) => ({ id, w: w / total }))
       .sort((x, y) => appOrder.indexOf(x.id) - appOrder.indexOf(y.id));
     n.topic = [...n.shares].sort((x, y) => y.w - x.w)[0].id;
-  } else if (!appOrder.includes(n.topic ?? '')) {
-    n.topic = undefined; // fallback from collaborators.json only if it names an application
   }
 }
 const graph = {
