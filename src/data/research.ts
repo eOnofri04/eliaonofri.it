@@ -99,6 +99,7 @@ export interface Talk {
 }
 
 export const talks: Talk[] = [
+  { date: '2026-09-16', title: 'COD-ssi: Enforcing Mutual Privacy for Credential Oblivious Disclosure in Self-Sovereign Identity', event: 'ESORICS 2026', location: 'Rome, Italy', kind: 'Talk', links: [{ label: 'slides', href: 'https://drive.google.com/file/d/1NxwGljHxB1Ak9vwia5647BZ-FL_8F7o7/view?usp=sharing' }] },
   { date: '2026-07-09', title: 'A Geometric Analysis of Small-sized Language Model Hallucinations', event: 'ICML 2026', location: 'Seoul, South Korea', kind: 'Talk', links: [{ label: 'slides', href: 'https://drive.google.com/file/d/1rPsIDx5I4Ql5q8mNYKtCWN1bPQoHj58I/view?usp=sharing' }, { label: 'poster', href: 'https://icml.cc/media/PosterPDFs/ICML%202026/66248.png?t=1781524324.4346218' }, { label: 'video', href: 'https://icml.cc/virtual/2026/poster/66248' }] },
   { date: '2026-05-14', title: 'Git: a 40-minute primer for researchers', event: 'CRI-Lab, KAUST', location: 'Saudi Arabia', kind: 'Seminar', links: [{ label: 'slides', href: 'https://drive.google.com/file/d/1F3gyIxhNs71pejtbHP6MTNAlwiYUyHR_/view?usp=sharing' }] },
   { date: '2026-04-22', title: 'Quantum & Post-Quantum Cryptography', event: 'CRI-Lab Quantum Masterclass, KAUST', location: 'Saudi Arabia', kind: 'Invited talk', links: [{ label: 'slides', href: 'https://drive.google.com/file/d/1iTysF3ONe_xV-zdbhfmMMrNfNhKqCFM-/view?usp=sharing' }] },
@@ -201,7 +202,7 @@ export const service: ServiceBlock[] = [
     heading: 'Programme & scientific committees',
     roles: [
       { role: 'Scientific Committee', org: 'Master in Data Analytics, Roma Tre', detail: 'since 2025', url: 'https://master-data-analytics.it' },
-      { role: 'General Program Chair', org: 'Young Applied Mathematicians Conference (YAMC 2026)', detail: 'Turin, Italy', url: 'https://www.yamc.it' },
+      { role: 'General Programme Chair', org: 'Young Applied Mathematicians Conference (YAMC 2026)', detail: 'Turin, Italy', url: 'https://www.yamc.it' },
       { role: 'PC Member', org: 'NET-AI-BHI workshop @ IEEE BIBM', detail: 'Dallas 2026 · Wuhan 2025 · Lisbon 2024' },
       { role: 'Programme & Organising', org: 'Young Applied Mathematicians Conference (YAMC)', detail: 'Padua 2025 · Rome 2024', url: 'https://sites.google.com/view/yamc/previous-editions' },
       { role: 'Scientific Committee', org: 'IXH24 — Italian XRPL Hackathon', detail: 'secondary-schools session · Rome 2024', url: 'https://www.decifris.it/ixh24' },

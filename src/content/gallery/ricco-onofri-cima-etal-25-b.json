@@ -1,0 +1,10 @@
+{
+  "title": "Six Painters",
+  "caption": "One prompt, 'a painter working on a canvas', rendered by six image generators whose output PRISM sets out to tell apart.",
+  "alt": "Six generated photographs of painters at easels, labelled by model.",
+  "image": "/gallery/ricco-onofri-cima-etal-25-b.webp",
+  "width": 1488,
+  "height": 1208,
+  "source": "Ricco_Onofri_Cima_etal_25",
+  "reviewed": false
+}

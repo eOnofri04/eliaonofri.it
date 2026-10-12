@@ -1,0 +1,10 @@
+{
+  "title": "One to Many",
+  "caption": "Alice encrypts once; every Bob whose attributes satisfy the policy may decrypt.",
+  "alt": "Line-art cloud database sending documents from Alice to Bob one to Bob n.",
+  "image": "/gallery/cianfriglia-onofri-pedicini-24a.webp",
+  "width": 1600,
+  "height": 929,
+  "source": "Cianfriglia_Onofri_Pedicini_24A",
+  "reviewed": false
+}

@@ -53,6 +53,7 @@ export function latexToHtml(input?: string): string {
   s = s.replace(/\\&/g, '&amp;').replace(/&(?!amp;|lt;|gt;|#)/g, '&amp;');
   s = s.replace(/---/g, '—').replace(/--/g, '–');
   s = s.replace(/[~]/g, ' ').replace(/\\[,;: ]/g, ' ');
+  s = s.replace(/\\[A-Za-z]+\*?/g, ''); // drop any macro not handled above
   s = s.replace(/[{}]/g, ''); // drop remaining grouping braces
   s = s.replace(/\s+/g, ' ').trim();
   return s;

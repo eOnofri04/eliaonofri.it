@@ -2,8 +2,11 @@
 // CV-style publication entry: mono [n], serif authors (Onofri emphasised),
 // italic title, faint venue, topic chips, and links. Author/title/venue arrive
 // as pre-cleaned HTML fragments from src/lib/bib.ts.
+import { topicLabel } from '@/lib/bib';
+
 interface Link { label: string; href: string; }
 interface Props {
+  id?: string;           // bib key, used as the anchor target (e.g. from the gallery)
   idx: string | number;
   authorsHtml: string;
   title: string;
@@ -14,10 +17,10 @@ interface Props {
   groups?: string[];
   links?: Link[];
 }
-const { idx, authorsHtml, title, venue, year, note, topics = [], groups = [], links = [] } = Astro.props;
-const pretty = (t: string) => t.replace(/\b\w/g, (c) => c.toUpperCase());
+const { id, idx, authorsHtml, title, venue, year, note, topics = [], groups = [], links = [] } = Astro.props;
+const pretty = topicLabel;
 ---
-<article class="pub" data-groups={groups.join(' ')}>
+<article class="pub" id={id} data-groups={groups.join(' ')}>
   <span class="pub-idx">[{idx}]</span>
   <div class="pub-body">
     <p class="pub-authors" set:html={authorsHtml} />
@@ -38,6 +41,8 @@ const pretty = (t: string) => t.replace(/\b\w/g, (c) => c.toUpperCase());
 </article>
 
 <style>
+  .pub { scroll-margin-top: 90px; }
+  .pub:target .pub-title { color: var(--gold); }
   .pub {
     display: grid;
     grid-template-columns: 2.6em 1fr;

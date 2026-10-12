@@ -1,0 +1,10 @@
+{
+  "title": "Posterior Glow",
+  "caption": "Kernel density estimates of an approximate Bayesian posterior across six populations, contracting as the sampler converges.",
+  "alt": "Six black panels with a violet haze tightening into a bright red-yellow spot.",
+  "image": "/gallery/stolfi-onofri-bretti-25.webp",
+  "width": 1600,
+  "height": 1200,
+  "source": "Stolfi_Onofri_Bretti_25",
+  "reviewed": false
+}

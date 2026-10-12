@@ -1,0 +1,10 @@
+{
+  "title": "APORIA",
+  "caption": "Disentangling LLMs Responses for Faithfulness Evaluation. A set of responses to the very same quesiton, half hallucinated and half faithful, projected onto the single direction that best separates them. Mutual distances are described under their PDFs.",
+  "alt": "Overlapping point clouds projected onto a line of mixed colours.",
+  "image": "/gallery/ricco-onofri-cima-etal-26.webp",
+  "width": 1600,
+  "height": 492,
+  "source": "Ricco_Onofri_Cima_etal_26",
+  "reviewed": false
+}

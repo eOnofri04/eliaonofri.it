@@ -1,39 +1,85 @@
 ---
+import { getCollection } from 'astro:content';
 import BaseLayout from '@/layouts/BaseLayout.astro';
 import GalleryCard from '@/components/GalleryCard.astro';
+import { getPublications, TOPIC_GROUPS, topicLabel } from '@/lib/bib';
 
-const pieces = [
-  { title: 'Collaboration Network', caption: 'Co-authorship structure rendered by a force-directed layout.', artType: 'network', tag: 'Graph Theory',   source: '2024', filter: 'graphs'    },
-  { title: 'Percolation Field',     caption: 'Pressure contours across a simulated porous medium.',         artType: 'field',   tag: 'Porous Media',  source: '2023', filter: 'numerical' },
-  { title: 'Golden Spiral',         caption: 'The Fibonacci construction behind the site mark.',             artType: 'spiral',  tag: 'Numerical',     source: 'cover',filter: 'numerical' },
-  { title: 'Hypercube',             caption: 'A projected tesseract from work on cube attacks.',             artType: 'cube',    tag: 'Cryptography',  source: '2025', filter: 'crypto'    },
-  { title: 'Crowd Trajectories',    caption: 'Tracked visitor paths through a crowded museum hall.',        artType: 'crowd',   tag: 'Crowd Tracking',source: '2022', filter: 'biology'   },
-  { title: 'Contraction Tree',      caption: 'The recursive merges of a graph-contraction scheme.',         artType: 'tree',    tag: 'Graph Theory',  source: '2024', filter: 'graphs'    },
-];
+// A piece may name its paper by bib key; year, tag and filter groups then come from the bib.
+const pubs = new Map(getPublications().map((p) => [p.key, p]));
+const entries = await getCollection('gallery');
 
-const filters = ['all', 'graphs', 'numerical', 'crypto', 'biology'];
+const pieces = entries
+  .map((e) => {
+    const key = e.data.source?.trim() || undefined;
+    const pub = key ? pubs.get(key) : undefined;
+    if (key && !pub) throw new Error(`[gallery] ${e.id}: unknown bib key "${key}"`);
+    const lastTopic = pub?.topics[pub.topics.length - 1];
+    return {
+      id: e.id,
+      ...e.data,
+      source: key,
+      year: pub?.year ?? e.data.year ?? 0,
+      tag: lastTopic ? topicLabel(lastTopic) : (e.data.tag ?? 'Research'),
+      groups: pub?.groups ?? e.data.groups ?? [],
+      sourceTitle: pub ? pub.title.replace(/<[^>]+>/g, '') : '',
+    };
+  })
+  .sort((a, b) => (a.order ?? 99) - (b.order ?? 99) || b.year - a.year || a.title.localeCompare(b.title));
+
+const filters = TOPIC_GROUPS.filter((g) => pieces.some((p) => p.groups.includes(g.id)));
 ---
 <BaseLayout title="Gallery" description="Scientific figures presented as artworks.">
   <div class="wrap page-body">
     <p class="eyebrow">Gallery</p>
     <h1 class="gallery-title">Figures as artworks</h1>
     <p class="lead">
-      A selection of graphics produced in the course of my research that, stripped of axes and
-      captions, stand on their own. Each links back to the work it came from.
+      A selection of graphics produced in the course of my research that, stripped of their context,
+      stand on their own. Each links back to the work it came from.
     </p>
 
     <div class="filters" id="gal-filters">
-      {filters.map(f => (
-        <button class={`chip${f === 'all' ? ' active' : ''}`} data-filter={f}>
-          {f === 'all' ? 'All' : f.charAt(0).toUpperCase() + f.slice(1)}
-        </button>
-      ))}
+      <button class="chip active" data-filter="all">All</button>
+      {filters.map((g) => <button class="chip" data-filter={g.id}>{g.label}</button>)}
     </div>
 
     <div class="gal-grid" id="gal-grid">
-      {pieces.map(p => <GalleryCard {...p} />)}
+      {pieces.map((p) => (
+        <GalleryCard
+          id={p.id}
+          title={p.title}
+          caption={p.caption}
+          alt={p.alt}
+          image={p.image}
+          width={p.width}
+          height={p.height}
+          tag={p.tag}
+          year={p.year}
+          sourceKey={p.source}
+          sourceTitle={p.sourceTitle}
+          groups={p.groups}
+        />
+      ))}
     </div>
+
+    <p class="licence">
+      Figures are released under <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="license noopener" target="_blank">CC BY-NC-SA 4.0</a>;
+      please cite the source paper when reusing them.
+    </p>
   </div>
+
+  <dialog class="lightbox" id="lightbox" aria-label="Enlarged figure">
+    <button class="lb-close" type="button" data-lb="close" aria-label="Close">×</button>
+    <button class="lb-nav lb-prev" type="button" data-lb="prev" aria-label="Previous figure">‹</button>
+    <button class="lb-nav lb-next" type="button" data-lb="next" aria-label="Next figure">›</button>
+    <figure>
+      <div class="lb-mat"><img id="lb-img" alt="" /></div>
+      <figcaption>
+        <h3 id="lb-title"></h3>
+        <p id="lb-cap"></p>
+        <a id="lb-src" href="#"></a>
+      </figcaption>
+    </figure>
+  </dialog>
 </BaseLayout>
 
 <style>
@@ -63,27 +109,133 @@ const filters = ['all', 'graphs', 'numerical', 'crypto', 'biology'];
     border-color: var(--teal);
     background: var(--teal-tint);
   }
+  /* masonry via columns: figures keep their native aspect ratio */
   .gal-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 20px;
+    columns: 3 300px;
+    column-gap: 20px;
   }
-  @media (max-width: 880px) { .gal-grid { grid-template-columns: repeat(2, 1fr); } }
-  @media (max-width: 560px) { .gal-grid { grid-template-columns: 1fr; } }
+  .licence {
+    margin-top: 28px;
+    font-family: var(--mono);
+    font-size: 0.75rem;
+    color: var(--muted);
+  }
+
+  .lightbox {
+    width: min(1100px, 94vw);
+    max-height: 94vh;
+    padding: 0;
+    border: 1px solid var(--rule);
+    border-radius: 13px;
+    background: var(--panel);
+    color: var(--ink);
+    overflow: auto;
+  }
+  .lightbox::backdrop { background: rgba(15, 15, 12, 0.82); }
+  .lightbox figure { margin: 0; }
+  .lb-mat {
+    background: #fcfcfa;
+    padding: 22px;
+    display: flex;
+    justify-content: center;
+  }
+  .lb-mat img {
+    max-width: 100%;
+    max-height: 72vh;
+    object-fit: contain;
+  }
+  .lightbox figcaption { padding: 16px 22px 20px; }
+  .lightbox h3 {
+    font-family: var(--serif);
+    font-style: italic;
+    font-size: 1.3rem;
+    margin: 0 0 6px;
+  }
+  #lb-cap { color: var(--ink-soft); margin: 0 0 10px; max-width: 70ch; }
+  #lb-src { font-family: var(--mono); font-size: 0.78rem; color: var(--teal); }
+  .lb-close, .lb-nav {
+    position: absolute;
+    z-index: 1;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: 1px solid var(--rule);
+    background: var(--panel);
+    color: var(--ink);
+    font-size: 1.4rem;
+    line-height: 1;
+    cursor: pointer;
+  }
+  .lb-close { top: 10px; right: 10px; }
+  .lb-nav { top: calc(36vh - 20px); }
+  .lb-prev { left: 10px; }
+  .lb-next { right: 10px; }
+  @media (max-width: 560px) {
+    .lb-mat { padding: 12px; }
+    .lb-nav { top: auto; bottom: 12px; }
+  }
 </style>
 
 <script>
+  const grid = document.getElementById('gal-grid')!;
   const btns = document.querySelectorAll<HTMLButtonElement>('#gal-filters .chip');
-  const cards = document.querySelectorAll<HTMLElement>('#gal-grid .card');
+  const cards = [...grid.querySelectorAll<HTMLElement>('.card')];
 
-  btns.forEach(btn => {
+  btns.forEach((btn) => {
     btn.addEventListener('click', () => {
-      btns.forEach(b => b.classList.remove('active'));
+      btns.forEach((b) => b.classList.remove('active'));
       btn.classList.add('active');
       const f = btn.dataset.filter ?? 'all';
-      cards.forEach(card => {
-        card.style.display = (f === 'all' || card.dataset.filter === f) ? '' : 'none';
+      cards.forEach((card) => {
+        const groups = (card.dataset.groups ?? '').split(' ');
+        card.hidden = !(f === 'all' || groups.includes(f));
       });
     });
+  });
+
+  // Lightbox: steps through the currently visible cards only.
+  const lb = document.getElementById('lightbox') as HTMLDialogElement;
+  const lbImg = document.getElementById('lb-img') as HTMLImageElement;
+  const lbTitle = document.getElementById('lb-title')!;
+  const lbCap = document.getElementById('lb-cap')!;
+  const lbSrc = document.getElementById('lb-src') as HTMLAnchorElement;
+  let current = 0;
+  const visible = () => cards.filter((c) => !c.hidden);
+
+  function show(card: HTMLElement) {
+    const img = card.querySelector('img')!;
+    const src = card.querySelector<HTMLAnchorElement>('a.src');
+    lbImg.src = img.src;
+    lbImg.alt = img.alt;
+    lbTitle.textContent = card.querySelector('h3')!.textContent;
+    lbCap.textContent = card.querySelector('.cap')!.textContent;
+    lbSrc.hidden = !src;
+    if (src) {
+      lbSrc.href = src.href;
+      lbSrc.textContent = `From: ${src.title}`;
+    }
+    current = visible().indexOf(card);
+  }
+  function step(d: number) {
+    const v = visible();
+    show(v[(current + d + v.length) % v.length]);
+  }
+
+  grid.addEventListener('click', (ev) => {
+    const trigger = (ev.target as HTMLElement).closest('[data-lightbox]');
+    if (!trigger) return;
+    show(trigger.closest<HTMLElement>('.card')!);
+    lb.showModal();
+  });
+  lb.addEventListener('click', (ev) => {
+    const t = ev.target as HTMLElement;
+    const action = t.closest<HTMLElement>('[data-lb]')?.dataset.lb;
+    if (action === 'close' || t === lb) lb.close();
+    else if (action === 'prev') step(-1);
+    else if (action === 'next') step(1);
+  });
+  lb.addEventListener('keydown', (ev) => {
+    if (ev.key === 'ArrowLeft') step(-1);
+    else if (ev.key === 'ArrowRight') step(1);
   });
 </script>

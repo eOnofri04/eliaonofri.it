@@ -232,5 +232,7 @@ h1, h2, h3 {
 
 /* ---- page padding ---- */
 .page-body {
-  padding: 62px 0 80px;
+  /* vertical only, so the .wrap side gutter survives on the same element */
+  padding-top: 62px;
+  padding-bottom: 80px;
 }

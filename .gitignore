@@ -6,3 +6,5 @@ node_modules/
 !.env.example
 .DS_Store
 public/gallery/tmp/
+CV_repo/
+__future*

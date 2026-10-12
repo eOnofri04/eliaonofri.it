@@ -1,0 +1,10 @@
+{
+  "title": "Tie-break Lattice",
+  "caption": "A game of tennis as a walk on a lattice of score differences, from the first point to one of two absorbing states: won or lost.",
+  "alt": "Diamond-shaped state graph with nodes coloured from red (−3) to green (+3), converging on the states W and L.",
+  "image": "/gallery/baraldo-onofri-pedicini-26.webp",
+  "width": 865,
+  "height": 863,
+  "source": "Baraldo_Onofri_Pedicini_26",
+  "reviewed": false
+}

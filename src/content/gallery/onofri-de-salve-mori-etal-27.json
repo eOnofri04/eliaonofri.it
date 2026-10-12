@@ -1,0 +1,10 @@
+{
+  "title": "COD-ssi Workflows",
+  "caption": "Issuer, holder and verifier: the classical, selective and oblivious disclosure workflows set side by side.",
+  "alt": "Sequence diagram with three actors and colour-coded message phases.",
+  "image": "/gallery/onofri-de-salve-mori-etal-27.webp",
+  "width": 1600,
+  "height": 1167,
+  "source": "Onofri_De-Salve_Mori_etal_27",
+  "reviewed": false
+}

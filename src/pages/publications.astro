@@ -38,6 +38,7 @@ const numbered = sections.map((s) => ({
           <h2 class="sec-title">{s.label} <span class="sec-count">{s.items.length}</span></h2>
           {s.items.map((p) => (
             <PubEntry
+              id={p.key}
               idx={p.idx}
               authorsHtml={p.authorsHtml}
               title={p.title}

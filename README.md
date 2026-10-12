@@ -20,6 +20,10 @@ npm run preview    # preview the production build locally
 
 Pushing to `main` triggers the GitHub Actions workflow in `.github/workflows/deploy.yml`, which builds the site and publishes it to GitHub Pages automatically.
 
+## Updating content
+
+See [UPDATING.md](UPDATING.md) for which file drives each section and how to add talks, publications, gallery pieces, and so on.
+
 ## Stack
 
 - **Framework:** Astro (static output)

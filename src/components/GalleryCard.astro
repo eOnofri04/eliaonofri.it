@@ -1,30 +1,43 @@
 ---
+// A gallery piece: the figure on a light mat (figures are drawn for white paper,
+// so the mat stays light in both themes), then title, caption and provenance.
+// Clicking the figure opens the page-level lightbox.
 interface Props {
+  id: string;
   title: string;
   caption: string;
+  alt: string;
+  image: string;
+  width: number;
+  height: number;
   tag: string;
-  source: string;
-  artType: string;
-  filter: string;
+  year: number;
+  sourceKey?: string;   // absent for pieces not tied to a paper
+  sourceTitle: string;
+  groups: string[];
 }
-const { title, caption, tag, source, artType, filter } = Astro.props;
+const { id, title, caption, alt, image, width, height, tag, year, sourceKey, sourceTitle, groups } = Astro.props;
 ---
-<article class="card" data-filter={filter}>
-  <div class="canvas">
-    <svg data-art={artType} viewBox="0 0 400 400" aria-hidden="true"></svg>
-  </div>
+<article class="card" id={id} data-groups={groups.join(' ')}>
+  <button class="mat" type="button" data-lightbox aria-label={`Enlarge: ${title}`}>
+    <img src={image} alt={alt} width={width} height={height} loading="lazy" decoding="async" />
+  </button>
   <div class="meta">
     <h3>{title}</h3>
     <p class="cap">{caption}</p>
     <div class="foot">
       <span class="tag">{tag}</span>
-      <span class="src">{source}</span>
+      {sourceKey
+        ? <a class="src" href={`/publications#${sourceKey}`} title={sourceTitle}>{year || 'in prep.'} ↗</a>
+        : year ? <span class="src">{year}</span> : null}
     </div>
   </div>
 </article>
 
 <style>
   .card {
+    break-inside: avoid;
+    margin: 0 0 20px;
     background: var(--panel);
     border: 1px solid var(--rule);
     border-radius: 13px;
@@ -32,26 +45,32 @@ const { title, caption, tag, source, artType, filter } = Astro.props;
     transition: transform 0.22s, border-color 0.22s, box-shadow 0.22s;
   }
   .card:hover {
-    transform: translateY(-4px);
+    transform: translateY(-3px);
     border-color: var(--rule-soft);
     box-shadow: var(--shadow);
   }
-  .canvas {
-    background: var(--bg-2);
-    aspect-ratio: 1 / 1;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+  .mat {
+    display: block;
+    width: 100%;
+    padding: 18px;
+    border: 0;
     border-bottom: 1px solid var(--rule);
+    background: #fcfcfa;
+    cursor: zoom-in;
   }
-  .canvas svg {
-    width: 88%;
-    height: 88%;
+  .mat img {
+    display: block;
+    width: 100%;
+    height: auto;
+    max-height: 520px;
+    object-fit: contain;
   }
   .meta {
-    padding: 15px 17px 17px;
+    padding: 14px 17px 16px;
   }
   h3 {
+    font-family: var(--serif);
+    font-style: italic;
     font-size: 1.12rem;
     margin: 0 0 4px;
   }
@@ -78,5 +97,7 @@ const { title, caption, tag, source, artType, filter } = Astro.props;
     font-family: var(--mono);
     font-size: 0.7rem;
     color: var(--muted);
+    text-decoration: none;
   }
+  .src:hover { color: var(--teal); }
 </style>

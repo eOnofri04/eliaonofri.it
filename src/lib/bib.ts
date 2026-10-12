@@ -51,6 +51,13 @@ export const TOPIC_GROUPS: { id: string; label: string; keys: string[] }[] = [
   { id: 'topology',  label: 'Computational Topology',  keys: ['computational topology'] },
 ];
 
+// Display labels for bib keywords that title-casing would mangle
+const TOPIC_LABELS: Record<string, string> = {
+  llm: 'LLM', cpabe: 'CP-ABE', cubeattack: 'Cube Attack', 'ai application': 'AI Application',
+};
+export const topicLabel = (t: string): string =>
+  TOPIC_LABELS[t] ?? t.replace(/\b\w/g, (c) => c.toUpperCase());
+
 // ── low-level bib tokenizer ──────────────────────────────────────────────
 interface RawEntry { type: string; key: string; fields: Record<string, string>; }
 
@@ -189,7 +196,7 @@ function deriveVenue(e: RawEntry): string {
     case 'techreport':
       return latexToHtml([f.type, f.institution].filter(Boolean).join(', '));
     case 'unpublished':
-      return latexToHtml(f.note ?? '');
+      return latexToHtml(stripIdMacros(f.note ?? '')).replace(/^[\s.,;]+|[\s.,;]+$/g, '').replace(/\s*\.(\s*\.)+/g, '.');
     default:
       return latexToHtml(f.journal ?? f.booktitle ?? '');
   }
@@ -202,7 +209,8 @@ function deriveLinks(e: RawEntry): PubLink[] {
   if (f.url) links.push({ label: f.url.toLowerCase().endsWith('.pdf') ? 'PDF' : 'url', href: f.url });
   const note = f.note ?? '';
   const arxiv = note.match(/\\arxiv\{(?:arXiv:)?([^}]+)\}/i);
-  if (arxiv) links.push({ label: 'arXiv', href: `https://arxiv.org/abs/${arxiv[1].trim()}` });
+  // skip placeholder ids such as 2609.XXXX until the preprint is live
+  if (arxiv && !/x{2,}/i.test(arxiv[1])) links.push({ label: 'arXiv', href: `https://arxiv.org/abs/${arxiv[1].trim()}` });
   const eprint = note.match(/\\eprint\{([^}]+)\}/i);
   if (eprint) links.push({ label: 'ePrint', href: `https://eprint.iacr.org/${eprint[1].trim()}` });
   for (const m of note.matchAll(/\\href\{([^}]+)\}\{([^}]*)\}/g)) {
@@ -215,12 +223,14 @@ function deriveLinks(e: RawEntry): PubLink[] {
   return links;
 }
 
+function stripIdMacros(note: string): string {
+  return note.replace(/\\arxiv\{[^}]*\}/gi, '').replace(/\\eprint\{[^}]*\}/gi, '');
+}
+
 function cleanNote(note?: string): string {
   if (!note) return '';
-  let s = note
-    .replace(/\\arxiv\{[^}]*\}/gi, '')
-    .replace(/\\eprint\{[^}]*\}/gi, '');
-  s = latexToText(s).replace(/^[\s.,;]+/, '').trim();
+  let s = stripIdMacros(note);
+  s = latexToText(s).replace(/^[\s.,;]+|[\s,;]+$/g, '').replace(/\s*\.(\s*\.)+/g, '.').trim();
   // drop bare "In preparation"/"To appear" — already conveyed by the section
   if (/^(in preparation|to appear)\.?$/i.test(s)) return '';
   return s;
@@ -238,7 +248,7 @@ export function getPublications(): Publication[] {
       .map((k) => k.trim().toLowerCase())
       .filter(Boolean);
     const pubType = (keywords.find((k) => TYPE_SET.has(k as PubType)) ?? 'other') as PubType;
-    const topics = keywords.filter((k) => k !== pubType && !FLAGS.has(k));
+    const topics = keywords.filter((k) => !TYPE_SET.has(k as PubType) && !FLAGS.has(k));
     const groups = TOPIC_GROUPS
       .filter((g) => g.keys.some((key) => topics.includes(key)))
       .map((g) => g.id);
@@ -257,7 +267,7 @@ export function getPublications(): Publication[] {
       venue: deriveVenue(e),
       year: parseInt(e.fields.year ?? '0', 10) || 0,
       month: parseInt((e.fields.month ?? '0').replace(/[^\d]/g, ''), 10) || 0,
-      note: cleanNote(e.fields.note),
+      note: e.type === 'unpublished' ? '' : cleanNote(e.fields.note), // venue already carries it
       links: deriveLinks(e),
     };
   });

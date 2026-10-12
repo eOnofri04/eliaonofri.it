@@ -1,0 +1,10 @@
+{
+  "title": "Life of a Macrophage",
+  "caption": "The states of an immune cell in an agent-based model of tuberculosis: from rest to infection, and on to apoptosis or necrosis.",
+  "alt": "State diagram of circles labelled Rest, Infected, Chronically Infected, Active, Apoptosis and Necrosis.",
+  "image": "/gallery/onofri-mastrostefano-etal-xx-a.webp",
+  "width": 1554,
+  "height": 979,
+  "source": "Mastrostefano_Ravoni_Onofri_etal_26",
+  "reviewed": false
+}

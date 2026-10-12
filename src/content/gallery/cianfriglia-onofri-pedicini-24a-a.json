@@ -1,0 +1,10 @@
+{
+  "title": "Revocation",
+  "caption": "A cloud-mediated exchange between Alice and Bob under ciphertext-policy attribute-based encryption, with keys issued and revoked by an authority.",
+  "alt": "Line-art icons of a cloud database, an authority building, Alice and Bob, with keys and a cross.",
+  "image": "/gallery/cianfriglia-onofri-pedicini-24a-a.webp",
+  "width": 1600,
+  "height": 891,
+  "source": "Cianfriglia_Onofri_Pedicini_24A",
+  "reviewed": false
+}
