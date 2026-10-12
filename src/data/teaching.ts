@@ -188,7 +188,6 @@ export const teaching: CourseGroup[] = [
           { label: 'Moodle',           href: 'https://matematicafisica.el.uniroma3.it/course/view.php?id=1131' },
           { label: 'Teams',            href: 'https://teams.microsoft.com/l/team/19%3a6_kwYRuGOag2c74-9oU4ES_fV7B8mRTgN8uKdgze0EQ1%40thread.tacv2/conversations?groupId=eb90e79d-8a07-43ee-9c6e-c2aabee1620d&tenantId=ffb4df68-f464-458c-a546-00fb3af66f6a' },
           { label: 'Registrazioni',    href: 'https://uniroma3.sharepoint.com/sites/AA2223-CR410-CRITTOGRAFIAACHIAVEPUBBLICA-20410625MEROLA2/Documenti%20Condivisi/General' },
-          { label: 'Sorgenti',         href: 'https://github.com/eOnofri04/22-23-CR410-B' },
         ],
         detail: cr410detail,
       },

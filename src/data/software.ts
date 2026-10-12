@@ -160,7 +160,6 @@ export const projects: SwProject[] = [
     links: [
       { label: 'GitHub APORIA', href: 'https://github.com/eOnofri04/APORIA' },
       { label: 'arXiv', href: 'https://arxiv.org/abs/2602.14778' },
-      { label: 'paper', href: 'https://arxiv.org/abs/2602.14778', soon: true },
     ],
   },
   {
@@ -252,7 +251,7 @@ export const projects: SwProject[] = [
     tags: ['Astro', 'TypeScript', 'd3-force'],
     color: 'gold',
     links: [
-      { label: 'GitHub', href: 'https://github.com/eOnofri04/eliaonofri.it', soon: true },
+      { label: 'GitHub', href: 'https://github.com/eOnofri04/eliaonofri.it' },
     ],
   },
 ];

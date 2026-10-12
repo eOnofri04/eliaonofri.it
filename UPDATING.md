@@ -9,7 +9,7 @@ Edit the file, check the result with `npm run dev` (also in a narrow window), th
 | Talks | `src/data/research.ts`, `talks` |
 | Projects | `src/data/research.ts`, `projects` |
 | Service | `src/data/research.ts`, `service` |
-| Home: *Currently*, research chips | `src/data/highlights.ts` |
+| Home: *Highlights*, research chips | `src/data/highlights.ts` |
 | Home: affiliations | `src/data/affiliations.ts` |
 | Teaching and students (EN and IT) | `src/data/teaching.ts` |
 | Software | `src/data/software.ts` |
@@ -80,7 +80,7 @@ A new review usually means widening a `detail`, e.g. `'2025'` to `'2025–26'`.
 
 ## Home page
 
-The *Currently* cards (`highlights.ts`, `highlights`) do not expire by themselves, so revisit them every few months:
+The *Highlights* cards (`highlights.ts`, `highlights`) do not expire by themselves, so revisit them every few months:
 
 ```ts
 { kind: 'Talk', date: 'Sep 2026', title: '…', detail: 'ESORICS 2026 · Rome, Italy', color: 'teal', href: '/research' },

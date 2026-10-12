@@ -120,9 +120,9 @@ const erdos = [
       </figure>
     </section>
 
-    <!-- ── Currently ── -->
-    <section class="strip" aria-labelledby="currently-heading">
-      <h2 class="sec-title" id="currently-heading">Currently</h2>
+    <!-- ── Highlights ── -->
+    <section class="strip" aria-labelledby="highlights-heading">
+      <h2 class="sec-title" id="highlights-heading">Highlights</h2>
       <div class="hl-grid">
         {highlights.map(h => (
           <HighlightCard kind={h.kind} date={h.date} color={h.color} href={h.href}>
@@ -310,7 +310,7 @@ const erdos = [
     letter-spacing: 0.02em;
   }
 
-  /* currently strip */
+  /* highlights strip */
   .strip { margin-top: 64px; }
   .hl-grid {
     display: grid;

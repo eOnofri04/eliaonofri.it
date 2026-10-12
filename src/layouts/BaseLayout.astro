@@ -16,6 +16,7 @@ interface Props {
   description?: string;
   lang?: string;
   langLink?: { href: string; lang: 'en' | 'it' };
+  noindex?: boolean;
 }
 
 const {
@@ -23,6 +24,7 @@ const {
   description = 'Postdoctoral Researcher in Cryptography, Graph Theory, and Numerical Modelling.',
   lang = 'en',
   langLink,
+  noindex = false,
 } = Astro.props;
 
 const fullTitle = `${title} — Elia Onofri`;
@@ -37,6 +39,7 @@ const ogImage = new URL('/og-image.png', Astro.site).href;
   <title>{fullTitle}</title>
   <meta name="description" content={description} />
   <link rel="canonical" href={canonical} />
+  {noindex && <meta name="robots" content="noindex" />}
   <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
   <meta name="generator" content={Astro.generator} />
 

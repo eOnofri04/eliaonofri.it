@@ -11,8 +11,7 @@ const T = {
     studentsLead: 'Theses supervised, most recent first.',
     current: 'in progress',
     thesis: 'Thesis',
-    cosup: 'Co-supervisor',
-    tbd: 'title to be defined',
+    cosup: 'Internal supervisor',
     info: 'info',
     close: 'Close',
   },
@@ -23,7 +22,6 @@ const T = {
     current: 'in corso',
     thesis: 'Tesi',
     cosup: 'Relatore interno',
-    tbd: 'titolo da definire',
     info: 'info',
     close: 'Chiudi',
   },
@@ -147,12 +145,12 @@ const sortedStudents = [...students].sort((a, b) => {
         <div class="stud-body">
           <p class="stud-name">{s.name}</p>
           <p class="stud-degree">{s.degree[lang]}</p>
-          <p class="stud-thesis">
-            {s.thesis
-              ? <><span class="stud-label">{T.thesis}:</span> <em>{s.thesis}</em></>
-              : <span class="stud-tbd">{T.thesis}: {T.tbd}</span>}
-            {s.coSupervisor && <span class="stud-cosup"> · {T.cosup}: {s.coSupervisor}</span>}
-          </p>
+          {(s.thesis || s.coSupervisor) && (
+            <p class="stud-thesis">
+              {s.thesis && <><span class="stud-label">{T.thesis}:</span> <em>{s.thesis}</em></>}
+              {s.coSupervisor && <span class="stud-cosup">{s.thesis ? ' · ' : ''}{T.cosup}: {s.coSupervisor}</span>}
+            </p>
+          )}
         </div>
       </li>
     ))}
@@ -337,7 +335,6 @@ const sortedStudents = [...students].sort((a, b) => {
   .stud-thesis { font-size: 0.9rem; color: var(--ink-soft); line-height: 1.45; margin: 0; }
   .stud-thesis em { font-style: italic; }
   .stud-label  { color: var(--muted); }
-  .stud-tbd    { color: var(--muted); font-style: italic; }
   .stud-cosup  { font-family: var(--mono); font-size: 0.74rem; color: var(--muted); }
 
   @media (max-width: 640px) {
