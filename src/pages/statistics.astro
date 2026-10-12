@@ -2,21 +2,16 @@
 import BaseLayout from '@/layouts/BaseLayout.astro';
 import { getPublications, getCollaborators } from '@/lib/bib';
 import { talks } from '@/data/research';
+import { APPLICATIONS, FIELDS } from '@/lib/taxonomy';
 import collaborators from '@/data/collaborators.json';
 import metrics from '@/data/metrics.json';
 
 type LinkInfo = { name: string; url?: string; affiliation?: string; topic?: string };
 const links = collaborators as Record<string, LinkInfo>;
 
-// Topic palette for the graph; ids match the `topic` field in collaborators.json.
-const TOPICS: { id: string; label: string }[] = [
-  { id: 'security',  label: 'Cybersecurity & cryptography' },
-  { id: 'numerical', label: 'Numerical modelling' },
-  { id: 'biology',   label: 'Computational biology' },
-  { id: 'topology',  label: 'Computational topology' },
-  { id: 'graph',     label: 'Graph theory & networks' },
-  { id: 'ml',        label: 'Machine learning & AI' },
-];
+// Graph colours follow the application (src/lib/taxonomy.ts). Each co-author is
+// coloured by the applications of the papers shared with Elia, as pie slices when several.
+const TOPICS = APPLICATIONS;
 
 const pubs = getPublications();
 const collabs = getCollaborators();
@@ -25,7 +20,7 @@ const yearMin = Math.min(...years);
 const yearMax = Math.max(...years);
 
 const stats = [
-  { label: 'Publications', value: String(pubs.length) },
+  { label: 'Contributions', value: String(pubs.length) },
   { label: 'Journal articles', value: String(pubs.filter((p) => p.pubType === 'journal').length) },
   { label: 'Co-authors', value: String(collabs.length) },
   { label: 'Talks & seminars', value: String(talks.length) },
@@ -33,10 +28,12 @@ const stats = [
 ];
 
 // ── build the co-authorship graph (nodes + weighted edges) ──
-interface GNode { id: string; name: string; count: number; elia: boolean; url?: string; topic?: string; }
+interface Share { id: string; w: number; }
+interface GNode { id: string; name: string; count: number; elia: boolean; url?: string; topic?: string; shares?: Share[]; }
 const nodeMap = new Map<string, GNode>();
 nodeMap.set('__elia', { id: '__elia', name: 'Elia Onofri', count: pubs.length, elia: true });
 const linkMap = new Map<string, number>();
+const appWeights = new Map<string, Map<string, number>>();
 
 for (const p of pubs) {
   const ids = ['__elia'];
@@ -48,12 +45,29 @@ for (const p of pubs) {
     }
     nodeMap.get(a.slug)!.count++;
     ids.push(a.slug);
+    const aw = appWeights.get(a.slug) ?? new Map<string, number>();
+    for (const x of p.cls.apps) aw.set(x, (aw.get(x) ?? 0) + 1 / p.cls.apps.length);
+    appWeights.set(a.slug, aw);
   }
   for (let i = 0; i < ids.length; i++)
     for (let j = i + 1; j < ids.length; j++) {
       const key = [ids[i], ids[j]].sort().join('::');
       linkMap.set(key, (linkMap.get(key) || 0) + 1);
     }
+}
+const appOrder = APPLICATIONS.map((x) => x.id);
+for (const n of nodeMap.values()) {
+  if (n.elia) continue;
+  const aw = appWeights.get(n.id);
+  const total = aw ? [...aw.values()].reduce((x, y) => x + y, 0) : 0;
+  if (aw && total > 0) {
+    n.shares = [...aw.entries()]
+      .map(([id, w]) => ({ id, w: w / total }))
+      .sort((x, y) => appOrder.indexOf(x.id) - appOrder.indexOf(y.id));
+    n.topic = [...n.shares].sort((x, y) => y.w - x.w)[0].id;
+  } else if (!appOrder.includes(n.topic ?? '')) {
+    n.topic = undefined; // fallback from collaborators.json only if it names an application
+  }
 }
 const graph = {
   nodes: [...nodeMap.values()],
@@ -67,7 +81,11 @@ const top = collabs.slice(0, 10).map((c) => ({ ...c, url: links[c.slug]?.url, af
 
 // ── collab details for the modal ──────────────────────────────────────────
 interface SharedPub { title: string; year: number; links: { label: string; href: string }[]; }
-interface CollabDetail { name: string; url?: string; affiliation?: string; pubs: SharedPub[]; }
+interface FacetCount { id: string; label: string; n: number; }
+interface CollabDetail {
+  name: string; url?: string; affiliation?: string; pubs: SharedPub[];
+  fields: FacetCount[]; apps: FacetCount[];   // shared papers per field / application
+}
 const collabDetails: Record<string, CollabDetail> = {};
 for (const p of pubs) {
   for (const a of p.authors) {
@@ -79,19 +97,33 @@ for (const p of pubs) {
         url: info?.url || undefined,
         affiliation: info?.affiliation || undefined,
         pubs: [],
+        fields: [],
+        apps: [],
       };
     }
-    collabDetails[a.slug].pubs.push({ title: p.title, year: p.year, links: p.links });
+    const d = collabDetails[a.slug];
+    d.pubs.push({ title: p.title, year: p.year, links: p.links });
+    const bump = (list: FacetCount[], id: string, facets: { id: string; label: string }[]) => {
+      const hit = list.find((x) => x.id === id);
+      if (hit) hit.n++;
+      else list.push({ id, label: facets.find((f) => f.id === id)?.label ?? id, n: 1 });
+    };
+    p.cls.fields.forEach((id) => bump(d.fields, id, FIELDS));
+    p.cls.apps.forEach((id) => bump(d.apps, id, APPLICATIONS));
   }
 }
 for (const d of Object.values(collabDetails)) {
   d.pubs.sort((a, b) => b.year - a.year);
+  d.fields.sort((a, b) => b.n - a.n);
+  d.apps.sort((a, b) => b.n - a.n);
 }
 
 // legend: only topics actually assigned to a co-author
-const usedTopics = new Set(graph.nodes.map((n) => n.topic).filter(Boolean));
+const usedTopics = new Set(graph.nodes.flatMap((n) => n.shares?.map((x) => x.id) ?? (n.topic ? [n.topic] : [])));
 const legendTopics = TOPICS.filter((t) => usedTopics.has(t.id));
-const hasUncategorised = graph.nodes.some((n) => !n.elia && !n.topic);
+// co-authors with no classified paper share the grey of the "Other" application,
+// so they are folded into a single "Other" legend entry
+const hasUncategorised = graph.nodes.some((n) => !n.elia && !n.topic) && !usedTopics.has('other');
 
 const impact = [
   { label: 'Citations', value: String(metrics.citations) },
@@ -109,7 +141,7 @@ const maxYearCites = Math.max(1, ...metrics.perYear.map((p) => p.citations));
     <p class="eyebrow">Statistics</p>
     <h1>By the numbers</h1>
     <p class="lead">
-      A look at the shape of my research output, built from the same <a href="/publications">publication</a> data.
+      A look at the shape of my research output, built from the same data as <a href="/publications">publication</a>.
       Citation metrics (h-index &amp; co.) are drawn from OpenAlex.
     </p>
 
@@ -127,7 +159,7 @@ const maxYearCites = Math.max(1, ...metrics.perYear.map((p) => p.citations));
       <p class="block-intro">
         Citations to my indexed works via <a href="https://openalex.org" target="_blank" rel="noopener">OpenAlex</a>,
         anchored to the listed DOIs ({metrics.worksMatched} of {metrics.doisQueried} indexed). Author-profile metrics
-        elsewhere can conflate distinct “E. Onofri” authors, so these count only my own works. Updated {metrics.updated}.
+        elsewhere can conflate distinct “E. Onofri” authors, so these count only my own works. <br>Updated {metrics.updated}.
       </p>
       <div class="impact-grid">
         {impact.map((s) => (
@@ -144,7 +176,7 @@ const maxYearCites = Math.max(1, ...metrics.perYear.map((p) => p.citations));
             <div class="bar-col" title={`${p.year}: ${p.citations} citations`}>
               <span class="bar-val">{p.citations}</span>
               <div class="bar" style={`height:${Math.round((p.citations / maxYearCites) * 100)}%`}></div>
-              <span class="bar-year">{String(p.year).slice(2)}</span>
+              <span class="bar-year">{String(p.year).slice(0)}</span>
             </div>
           ))}
         </div>
@@ -154,9 +186,9 @@ const maxYearCites = Math.max(1, ...metrics.perYear.map((p) => p.citations));
     <section class="block">
       <h2 class="sec-title">Collaboration network</h2>
       <p class="block-intro">
-        Every co-author, sized by shared papers, linked when they appear together and coloured by their main area of
-        collaboration. Drag a node, scroll or pinch to zoom, drag the background to pan; hover to focus, click a node or
-        a name below to open their profile card.
+        Every co-author, sized by shared papers, linked when they appear together and coloured by the applications of
+        those papers — in slices when they span several. Drag a node, scroll or pinch to zoom, drag the background to
+        pan; hover to focus, click a node or a name below to open their profile card.
       </p>
 
       <figure class="graph-figure">
@@ -171,8 +203,8 @@ const maxYearCites = Math.max(1, ...metrics.perYear.map((p) => p.citations));
         </div>
         <figcaption class="graph-legend">
           <span class="lg lg-me">Elia</span>
-          {legendTopics.map((t) => <span class={`lg topic-${t.id}`}>{t.label}</span>)}
-          {hasUncategorised && <span class="lg lg-other">other</span>}
+          {legendTopics.map((t) => <span class="lg lg-topic" style={`--c: var(--a-${t.id})`}>{t.label}</span>)}
+          {hasUncategorised && <span class="lg lg-other">Other</span>}
           <span class="lg lg-link">profile on file</span>
         </figcaption>
       </figure>
@@ -207,10 +239,11 @@ const maxYearCites = Math.max(1, ...metrics.perYear.map((p) => p.citations));
 <script>
   import { forceSimulation, forceManyBody, forceLink, forceCenter, forceCollide, forceX, forceY } from 'd3-force';
 
-  interface GNode { id: string; name: string; count: number; elia: boolean; url?: string; topic?: string; x?: number; y?: number; fx?: number | null; fy?: number | null; }
+  interface GNode { id: string; name: string; count: number; elia: boolean; url?: string; topic?: string; shares?: { id: string; w: number }[]; x?: number; y?: number; fx?: number | null; fy?: number | null; }
   interface GLink { source: any; target: any; weight: number; }
   interface CollabPub { title: string; year: number; links: { label: string; href: string }[]; }
-  interface CollabDetail { name: string; url?: string; affiliation?: string; pubs: CollabPub[]; }
+  interface FacetCount { id: string; label: string; n: number; }
+  interface CollabDetail { name: string; url?: string; affiliation?: string; pubs: CollabPub[]; fields: FacetCount[]; apps: FacetCount[]; }
 
   // ── collab modal ──────────────────────────────────────────────────────────
   const collabDetailsEl = document.getElementById('collab-details');
@@ -228,6 +261,23 @@ const maxYearCites = Math.max(1, ...metrics.perYear.map((p) => p.citations));
     if (d.affiliation) html += `<p class="cmodal-aff">${esc(d.affiliation)}</p>`;
     if (d.url) html += `<a class="cmodal-link" href="${esc(d.url)}" target="_blank" rel="noopener">Profile ↗</a>`;
     html += `</header>`;
+    // distribution of the shared papers over fields and applications
+    if (d.fields.length > 0 || d.apps.length > 0) {
+      html += `<div class="cmodal-dist">`;
+      if (d.apps.length > 0) {
+        html += `<p class="cmodal-dist-head">Application</p><div class="cmodal-bar">`;
+        for (const a of d.apps) html += `<span style="flex:${a.n};background:var(--a-${a.id})" title="${esc(a.label)}: ${a.n}"></span>`;
+        html += `</div><ul class="cmodal-dist-list">`;
+        for (const a of d.apps) html += `<li style="--c:var(--a-${a.id})" class="is-app">${esc(a.label)} <b>${a.n}</b></li>`;
+        html += `</ul>`;
+      }
+      if (d.fields.length > 0) {
+        html += `<p class="cmodal-dist-head">Field</p><ul class="cmodal-dist-list">`;
+        for (const f of d.fields) html += `<li>${esc(f.label)} <b>${f.n}</b></li>`;
+        html += `</ul>`;
+      }
+      html += `</div>`;
+    }
     if (d.pubs.length > 0) {
       html += `<div class="cmodal-pubs">`;
       html += `<p class="cmodal-pubs-head">${d.pubs.length} shared paper${d.pubs.length > 1 ? 's' : ''}</p>`;
@@ -323,12 +373,30 @@ const maxYearCites = Math.max(1, ...metrics.perYear.map((p) => p.citations));
       if (n.elia) cls.push('is-me');
       if (n.url) cls.push('has-link');
       if (n.elia || n.count >= 3) cls.push('big');
-      if (n.topic) cls.push('topic-' + n.topic);
+      const pie = (n.shares?.length ?? 0) > 1;
+      if (pie) cls.push('pie');
+      else if (n.topic) cls.push('has-topic');
       const g = document.createElementNS(SVGNS, 'g');
       g.setAttribute('class', cls.join(' '));
       g.setAttribute('tabindex', '0');
+      const r = radius(n);
+      if (pie) {
+        // one slice per field, proportional to the shared papers in that field
+        let a0 = -Math.PI / 2;
+        for (const sh of n.shares!) {
+          const a1 = a0 + sh.w * 2 * Math.PI;
+          const path = document.createElementNS(SVGNS, 'path');
+          const large = a1 - a0 > Math.PI ? 1 : 0;
+          path.setAttribute('d', `M0 0 L${r * Math.cos(a0)} ${r * Math.sin(a0)} A${r} ${r} 0 ${large} 1 ${r * Math.cos(a1)} ${r * Math.sin(a1)} Z`);
+          path.setAttribute('class', 'g-slice');
+          path.style.fill = `var(--a-${sh.id})`;
+          g.appendChild(path);
+          a0 = a1;
+        }
+      }
       const c = document.createElementNS(SVGNS, 'circle');
-      c.setAttribute('r', String(radius(n)));
+      c.setAttribute('r', String(r));
+      if (!pie && n.topic && !n.elia) c.style.fill = `var(--a-${n.topic})`;
       g.appendChild(c);
       const label = document.createElementNS(SVGNS, 'text');
       label.setAttribute('class', 'g-label');
@@ -607,28 +675,18 @@ const maxYearCites = Math.max(1, ...metrics.perYear.map((p) => p.citations));
   }
   .lg { display: inline-flex; align-items: center; gap: 6px; }
   .lg::before { content: ''; width: 10px; height: 10px; border-radius: 50%; background: var(--muted); }
-  .lg-me::before { background: var(--teal); }
+  .lg-me::before { background: var(--gold); }
+  .lg-topic::before { background: var(--c); }
   .lg-other::before { background: var(--muted); }
   .lg-link::before { background: transparent; border: 1px solid var(--gold); }
-  .lg.topic-security::before { background: var(--t-security); }
-  .lg.topic-numerical::before { background: var(--t-numerical); }
-  .lg.topic-biology::before { background: var(--t-biology); }
-  .lg.topic-topology::before { background: var(--t-topology); }
-  .lg.topic-graph::before { background: var(--t-graph); }
-  .lg.topic-ml::before { background: var(--t-ml); }
 
   /* graph elements (global — injected by the client script) */
   :global(.g-link) { stroke: var(--rule); stroke-opacity: 0.7; transition: stroke-opacity 0.15s; }
   :global(.g-link.dim) { stroke-opacity: 0.08; }
   :global(.g-node) { cursor: grab; }
   :global(.g-node circle) { fill: var(--muted); stroke: var(--bg); stroke-width: 1.5; transition: opacity 0.15s; }
-  :global(.g-node.topic-security circle) { fill: var(--t-security); }
-  :global(.g-node.topic-numerical circle) { fill: var(--t-numerical); }
-  :global(.g-node.topic-biology circle) { fill: var(--t-biology); }
-  :global(.g-node.topic-topology circle) { fill: var(--t-topology); }
-  :global(.g-node.topic-graph circle) { fill: var(--t-graph); }
-  :global(.g-node.topic-ml circle) { fill: var(--t-ml); }
-  :global(.g-node.is-me circle) { fill: var(--teal); stroke-width: 2; }
+  :global(.g-node.pie circle) { fill: none; }
+  :global(.g-node.is-me circle) { fill: var(--gold); stroke-width: 2; }
   :global(.g-node.has-link circle) { stroke: var(--gold); stroke-width: 1.5; }
   :global(.g-node.dim) { opacity: 0.18; }
   :global(.g-node:focus) { outline: none; }
@@ -701,6 +759,21 @@ const maxYearCites = Math.max(1, ...metrics.perYear.map((p) => p.citations));
     padding: 3px 10px;
   }
   :global(.cmodal-link:hover) { text-decoration: underline; border-color: var(--teal); }
+  :global(.cmodal-dist) { border-top: 1px solid var(--rule-soft); padding: 12px 0 14px; }
+  :global(.cmodal-dist-head) {
+    font-family: var(--mono); font-size: 0.68rem; letter-spacing: 0.1em; text-transform: uppercase;
+    color: var(--muted); margin: 0 0 6px;
+  }
+  :global(.cmodal-dist-head:not(:first-child)) { margin-top: 12px; }
+  :global(.cmodal-bar) { display: flex; gap: 2px; height: 8px; border-radius: 4px; overflow: hidden; margin-bottom: 8px; }
+  :global(.cmodal-dist-list) { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 6px 14px; }
+  :global(.cmodal-dist-list li) { font-family: var(--mono); font-size: 0.74rem; color: var(--ink-soft); display: inline-flex; align-items: center; gap: 6px; }
+  :global(.cmodal-dist-list li.is-app::before) { content: ''; width: 8px; height: 8px; border-radius: 50%; background: var(--c); }
+  :global(.cmodal-dist-list b) { color: var(--muted); font-weight: 500; }
+  :global(.cmodal-pub-title .pub-flag) {
+    font-family: var(--mono); font-size: 0.62rem; text-transform: uppercase; letter-spacing: 0.06em;
+    color: var(--gold); border: 1px solid var(--gold); border-radius: 4px; padding: 0 4px; margin-left: 4px;
+  }
   :global(.cmodal-pubs) { border-top: 1px solid var(--rule-soft); padding-top: 14px; }
   :global(.cmodal-pubs-head) {
     font-family: var(--mono); font-size: 0.72rem; text-transform: uppercase;

@@ -2,7 +2,8 @@
 // CV-style publication entry: mono [n], serif authors (Onofri emphasised),
 // italic title, faint venue, topic chips, and links. Author/title/venue arrive
 // as pre-cleaned HTML fragments from src/lib/bib.ts.
-import { topicLabel } from '@/lib/bib';
+import TopicChips from '@/components/TopicChips.astro';
+import type { Classification } from '@/lib/taxonomy';
 
 interface Link { label: string; href: string; }
 interface Props {
@@ -13,14 +14,12 @@ interface Props {
   venue: string;
   year?: number;
   note?: string;
-  topics?: string[];
-  groups?: string[];
+  cls?: Classification;
   links?: Link[];
 }
-const { id, idx, authorsHtml, title, venue, year, note, topics = [], groups = [], links = [] } = Astro.props;
-const pretty = topicLabel;
+const { id, idx, authorsHtml, title, venue, year, note, cls = { fields: [], apps: [], chips: [] }, links = [] } = Astro.props;
 ---
-<article class="pub" id={id} data-groups={groups.join(' ')}>
+<article class="pub" id={id} data-fields={cls.fields.join(' ')} data-apps={cls.apps.join(' ')}>
   <span class="pub-idx">[{idx}]</span>
   <div class="pub-body">
     <p class="pub-authors" set:html={authorsHtml} />
@@ -29,9 +28,9 @@ const pretty = topicLabel;
       <span set:html={venue} />{year ? <span class="pub-year"> · {year}</span> : null}
     </p>
     {note && <p class="pub-note">{note}</p>}
-    {(topics.length > 0 || links.length > 0) && (
+    {(cls.chips.length > 0 || links.length > 0) && (
       <div class="pub-meta">
-        {topics.map((t) => <span class="pub-chip">{pretty(t)}</span>)}
+        <TopicChips chips={cls.chips} clickable />
         {links.map((l) => (
           <a class="pub-lnk" href={l.href} target="_blank" rel="noopener">{l.label} ↗</a>
         ))}
@@ -104,15 +103,6 @@ const pretty = topicLabel;
     align-items: center;
     gap: 6px 10px;
     margin-top: 8px;
-  }
-  .pub-chip {
-    font-family: var(--mono);
-    font-size: 0.7rem;
-    color: var(--muted);
-    background: var(--panel-2);
-    border: 1px solid var(--rule);
-    border-radius: 20px;
-    padding: 1px 9px;
   }
   .pub-lnk {
     font-family: var(--mono);

@@ -1,7 +1,10 @@
 ---
 import BaseLayout from '@/layouts/BaseLayout.astro';
-import Chip from '@/components/Chip.astro';
+import FacetFilters from '@/components/FacetFilters.astro';
+import TopicChips from '@/components/TopicChips.astro';
 import { projects, talks, service, type TalkKind } from '@/data/research';
+import { getPublications } from '@/lib/bib';
+import { classify, merge, usedFacets } from '@/lib/taxonomy';
 
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 const fmtDate = (iso: string) => {
@@ -18,8 +21,16 @@ const KIND_COLOR: Record<TalkKind, string> = {
   'Mini-course': 'gold',
 };
 
-// group talks by year (already reverse-chronological in the data)
-const sortedTalks = [...talks].sort((a, b) => b.date.localeCompare(a.date));
+// talks inherit their paper's classification, plus any topics of their own
+const pubs = new Map(getPublications().map((p) => [p.key, p]));
+const sortedTalks = [...talks]
+  .sort((a, b) => b.date.localeCompare(a.date))
+  .map((t) => {
+    const pub = t.paper ? pubs.get(t.paper) : undefined;
+    if (t.paper && !pub) throw new Error(`[research] talk "${t.title}": unknown bib key "${t.paper}"`);
+    return { ...t, cls: merge(pub?.cls ?? classify([]), classify(t.topics ?? [], t.title)) };
+  });
+const talkFacets = usedFacets(sortedTalks.map((t) => t.cls));
 const talkYears = [...new Set(sortedTalks.map((t) => t.date.slice(0, 4)))];
 ---
 <BaseLayout
@@ -56,7 +67,7 @@ const talkYears = [...new Set(sortedTalks.map((t) => t.date.slice(0, 4)))];
             {p.grant && <p class="proj-grant">{p.grant}</p>}
             <div class="proj-foot">
               <div class="proj-tags">
-                {p.tags.map((t) => <Chip color={p.color}>{t}</Chip>)}
+                <TopicChips chips={classify(p.topics, p.acronym).chips} extra={p.tags} />
               </div>
               {p.url && <a class="proj-link" href={p.url} target="_blank" rel="noopener">site ↗</a>}
             </div>
@@ -68,12 +79,14 @@ const talkYears = [...new Set(sortedTalks.map((t) => t.date.slice(0, 4)))];
     <!-- ── Talks ── -->
     <section id="talks" class="block">
       <h2 class="sec-title">Talks &amp; seminars <span class="sec-count">{talks.length}</span></h2>
+      <FacetFilters target="talk-list" fields={talkFacets.fields} apps={talkFacets.apps} />
+      <div id="talk-list">
       {talkYears.map((yr) => (
-        <div class="year-group">
+        <div class="year-group" data-section>
           <p class="year-label">{yr}</p>
           <ul class="talk-list" role="list">
             {sortedTalks.filter((t) => t.date.startsWith(yr)).map((t) => (
-              <li class={`talk talk--${KIND_COLOR[t.kind]}`}>
+              <li class={`talk talk--${KIND_COLOR[t.kind]}`} data-fields={t.cls.fields.join(' ')} data-apps={t.cls.apps.join(' ')}>
                 <span class="talk-date">{fmtDate(t.date)}</span>
                 <div class="talk-body">
                   <p class="talk-title">
@@ -86,12 +99,15 @@ const talkYears = [...new Set(sortedTalks.map((t) => t.date.slice(0, 4)))];
                       <a class="talk-link" href={l.href} target="_blank" rel="noopener"> · {l.label} ↗</a>
                     ))}
                   </p>
+                  {t.cls.chips.length > 0 && <p class="talk-chips"><TopicChips chips={t.cls.chips} clickable /></p>}
                 </div>
               </li>
             ))}
           </ul>
         </div>
       ))}
+      </div>
+      <p class="empty" id="talk-list-empty" hidden>No talks match this combination.</p>
     </section>
 
     <!-- ── Service ── -->
@@ -135,6 +151,8 @@ const talkYears = [...new Set(sortedTalks.map((t) => t.date.slice(0, 4)))];
 </BaseLayout>
 
 <style>
+  .talk-chips { display: flex; flex-wrap: wrap; gap: 5px; margin: 6px 0 0; }
+  .empty { color: var(--muted); font-family: var(--mono); font-size: 0.9rem; }
   .eyebrow {
     font-family: var(--mono);
     font-size: 0.78rem;

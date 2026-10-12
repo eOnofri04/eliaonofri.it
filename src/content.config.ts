@@ -3,8 +3,8 @@ import { glob } from 'astro/loaders';
 
 // Astro 5+ Content Layer API. Gallery entries are one JSON file per piece under
 // src/content/gallery/; images live in public/gallery/ as optimised WebP.
-// With a `source` bib key, year, tag and filter groups are derived from the bib;
-// pieces not tied to a paper omit it and may set them by hand.
+// With a `source` bib key, the classification (field/application) comes from the bib;
+// pieces not tied to a paper omit it and list `topics` keywords (src/lib/taxonomy.ts).
 const gallery = defineCollection({
   loader: glob({ pattern: '**/*.json', base: './src/content/gallery' }),
   schema: z.object({
@@ -15,11 +15,11 @@ const gallery = defineCollection({
     width: z.number().int(),
     height: z.number().int(),
     source: z.string().optional(),   // bib key in src/data/publications.bib; omit or "" if none
-    year: z.number().int().optional(),   // only used without a source
-    tag: z.string().optional(),          // only used without a source
-    groups: z.array(z.string()).optional(), // filter ids (crypto, graph, numerical, ml, topology); only without a source
+    // YYYY, YYYY-MM or YYYY-MM-DD; drives the ordering (newest first). Pre-filled from
+    // the publication date; edit it freely to move a piece. Falls back to the bib date.
+    date: z.string().regex(/^\d{4}(-\d{2}){0,2}$/).optional(),
+    topics: z.array(z.string()).optional(), // taxonomy keywords; added to the bib's when a source is given
     licence: z.string().default('CC BY-NC-SA 4.0'),
-    order: z.number().optional(),    // lower first; ties fall back to year, newest first
     reviewed: z.boolean().default(false), // caption checked by Elia
   }),
 });

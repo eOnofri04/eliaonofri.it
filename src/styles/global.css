@@ -26,12 +26,21 @@
   --shadow: 0 14px 40px -18px rgba(0, 0, 0, 0.65);
 
   /* topic colours (collaboration graph) */
-  --t-security: #4e9286;
-  --t-numerical: #d08a63;
-  --t-biology: #e0b354;
-  --t-topology: #9a86c4;
-  --t-graph: #6fa8c7;
-  --t-ml: #c77b9e;
+  --a-crowds: #d08a63;
+  --a-heritage: #9a86c4;
+  --a-biomed: #4e9286;
+  --a-blockchain: #6fa8c7;
+  --a-identity: #8fa86a;
+  --a-genai: #c77b9e;
+  --a-foundations: #d8d7cc;
+  --a-other: #9d9b8c;
+  /* research fields: tinted chip backgrounds */
+  --f-security: #4e9286;
+  --f-ai: #c77b9e;
+  --f-ml: #e0b354;
+  --f-numerical: #d08a63;
+  --f-graph: #6fa8c7;
+  --f-topology: #9a86c4;
 
   --serif: 'Source Serif 4 Variable', 'Iowan Old Style', Georgia, serif;
   --sans: 'Source Sans 3 Variable', system-ui, -apple-system, sans-serif;
@@ -57,12 +66,20 @@
   --terra-tint: rgba(181, 112, 79, 0.12);
   --gold-tint: rgba(199, 154, 62, 0.14);
   --purple-tint: rgba(106, 90, 140, 0.13);
-  --t-security: #3a746a;
-  --t-numerical: #b5704f;
-  --t-biology: #c79a3e;
-  --t-topology: #7a66a8;
-  --t-graph: #3e7ca0;
-  --t-ml: #a24e76;
+  --a-crowds: #b5704f;
+  --a-heritage: #7a66a8;
+  --a-biomed: #3a746a;
+  --a-blockchain: #3e7ca0;
+  --a-identity: #6a8443;
+  --a-genai: #a24e76;
+  --a-foundations: #5b5a4e;
+  --a-other: #6f6e60;
+  --f-security: #3a746a;
+  --f-ai: #a24e76;
+  --f-ml: #c79a3e;
+  --f-numerical: #b5704f;
+  --f-graph: #3e7ca0;
+  --f-topology: #7a66a8;
   --shadow: 0 14px 38px -20px rgba(40, 40, 30, 0.28);
 }
 
@@ -235,4 +252,17 @@ h1, h2, h3 {
   /* vertical only, so the .wrap side gutter survives on the same element */
   padding-top: 62px;
   padding-bottom: 80px;
+}
+
+/* corresponding-author envelope (src/lib/bib.ts → CORR_ICON) */
+.corr {
+  display: inline-block;
+  width: 0.78em;
+  height: 0.6em;
+  margin-left: 0.25em;
+  vertical-align: 0.05em;
+  fill: none;
+  stroke: var(--teal);
+  stroke-width: 1.3;
+  stroke-linejoin: round;
 }

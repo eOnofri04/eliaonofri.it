@@ -1,9 +1,10 @@
 // Build-time parser for the CV bibliography (BibDesk export).
-// Single source of truth: src/data/publications.bib (synced from docs/CV via
+// Single source of truth: src/data/publications.bib (synced from CV_repo/ via
 // `npm run sync:bib`). Dependency-free on purpose — see src/lib/latex.ts.
 
 import bibSrc from '../data/publications.bib?raw';
 import { latexToHtml, latexToText } from './latex';
+import { classify, type Classification } from './taxonomy';
 
 export type PubType =
   | 'journal' | 'proceeding' | 'conference' | 'other'
@@ -15,8 +16,8 @@ export interface Publication {
   key: string;
   entryType: string;
   pubType: PubType;
-  topics: string[];      // keyword topics (type/flags removed)
-  groups: string[];      // filter-group ids this entry belongs to
+  topics: string[];      // topic keywords (type/flags removed)
+  cls: Classification;   // field/application facets + chips (src/lib/taxonomy.ts)
   authors: Name[];       // structured co-author list
   authorsHtml: string;   // formatted, "E. Onofri" emphasised
   title: string;         // HTML fragment
@@ -41,22 +42,6 @@ export const SECTIONS: { type: PubType; label: string }[] = [
 
 const TYPE_SET = new Set(SECTIONS.map((s) => s.type));
 const FLAGS = new Set(['toappear']);
-
-// Topic filter groups (each maps onto one or more bib keywords)
-export const TOPIC_GROUPS: { id: string; label: string; keys: string[] }[] = [
-  { id: 'crypto',    label: 'Cryptography & Security', keys: ['crypto'] },
-  { id: 'graph',     label: 'Graph Theory',            keys: ['graph theory', 'graph contraction'] },
-  { id: 'numerical', label: 'Numerical Modelling',     keys: ['numerical analysis'] },
-  { id: 'ml',        label: 'Machine Learning',        keys: ['ai application', 'llm'] },
-  { id: 'topology',  label: 'Computational Topology',  keys: ['computational topology'] },
-];
-
-// Display labels for bib keywords that title-casing would mangle
-const TOPIC_LABELS: Record<string, string> = {
-  llm: 'LLM', cpabe: 'CP-ABE', cubeattack: 'Cube Attack', 'ai application': 'AI Application',
-};
-export const topicLabel = (t: string): string =>
-  TOPIC_LABELS[t] ?? t.replace(/\b\w/g, (c) => c.toUpperCase());
 
 // ── low-level bib tokenizer ──────────────────────────────────────────────
 interface RawEntry { type: string; key: string; fields: Record<string, string>; }
@@ -164,13 +149,35 @@ function namesOf(raw: string): Name[] {
   return raw.split(/\s+and\s+/).map((s) => s.trim()).filter(Boolean).map(parseName);
 }
 
-function citeName(n: Name): string {
-  const text = (n.given ? `${initials(n.given)} ` : '') + n.family;
-  return n.isElia ? `<em class="me">${text}</em>` : text;
+/** Small envelope marking the corresponding author (styled by `.corr` in global.css). */
+export const CORR_ICON =
+  '<svg class="corr" viewBox="0 0 16 12" role="img" aria-label="corresponding author"><title>Corresponding author</title>' +
+  '<rect x=".75" y=".75" width="14.5" height="10.5" rx="1.5"/><path d="M1.5 1.6 8 6.6l6.5-5"/></svg>';
+
+/**
+ * Who is marked as corresponding author. The optional bib field `corresponding`
+ * lists surnames ("Di Pietro"), optionally with a given name to disambiguate
+ * ("Onofri, Elia"), separated by "and"; `none` marks nobody. Without the field,
+ * Elia is the corresponding author, except for theses and edited volumes.
+ */
+function correspondingMatcher(field: string | undefined, pubType: PubType): (n: Name) => boolean {
+  if (field === undefined) return pubType === 'thesis' || pubType === 'editor' ? () => false : (n) => n.isElia;
+  if (/^\s*none\s*$/i.test(field)) return () => false;
+  const fold = (x: string) => slugifyName(x);
+  const wanted = field.split(/\s+and\s+/).map((w) => {
+    const [fam, giv = ''] = latexToText(w).split(',').map((x) => x.trim());
+    return { family: fold(fam), initial: fold(giv).charAt(0) };
+  });
+  return (n) => wanted.some((w) => fold(n.family) === w.family && (!w.initial || fold(n.given).charAt(0) === w.initial));
 }
 
-function formatAuthors(names: Name[]): string {
-  const out = names.map(citeName);
+function citeName(n: Name, corr: boolean): string {
+  const text = (n.given ? `${initials(n.given)} ` : '') + n.family;
+  return (n.isElia ? `<em class="me">${text}</em>` : text) + (corr ? CORR_ICON : '');
+}
+
+function formatAuthors(names: Name[], isCorr: (n: Name) => boolean = () => false): string {
+  const out = names.map((n) => citeName(n, isCorr(n)));
   if (out.length === 0) return '';
   if (out.length === 1) return out[0];
   if (out.length === 2) return `${out[0]} and ${out[1]}`;
@@ -223,6 +230,13 @@ function deriveLinks(e: RawEntry): PubLink[] {
   return links;
 }
 
+/** Uniform venue for entries under review, named after the preprint server. */
+function preprintVenue(e: RawEntry, links: PubLink[]): string {
+  if (links.some((l) => l.label === 'arXiv')) return 'arXiv preprint';
+  if (/^10\.(1101|64898)\//.test(e.fields.doi ?? '')) return 'bioRxiv preprint';
+  return 'Preprint';
+}
+
 function stripIdMacros(note: string): string {
   return note.replace(/\\arxiv\{[^}]*\}/gi, '').replace(/\\eprint\{[^}]*\}/gi, '');
 }
@@ -249,26 +263,27 @@ export function getPublications(): Publication[] {
       .filter(Boolean);
     const pubType = (keywords.find((k) => TYPE_SET.has(k as PubType)) ?? 'other') as PubType;
     const topics = keywords.filter((k) => !TYPE_SET.has(k as PubType) && !FLAGS.has(k));
-    const groups = TOPIC_GROUPS
-      .filter((g) => g.keys.some((key) => topics.includes(key)))
-      .map((g) => g.id);
+    const cls = classify(topics, e.key);
     const authorSrc = pubType === 'editor' ? (e.fields.editor ?? '') : (e.fields.author ?? '');
     const authors = namesOf(authorSrc);
     const toappear = keywords.includes('toappear');
+    const links = deriveLinks(e);
+    const under = pubType === 'submitted';
     return {
       key: e.key,
       entryType: e.type,
       pubType,
       topics,
-      groups,
+      cls,
       authors,
-      authorsHtml: formatAuthors(authors),
+      authorsHtml: formatAuthors(authors, correspondingMatcher(e.fields.corresponding, pubType)),
       title: latexToHtml(e.fields.title) + (toappear ? ' <span class="pub-flag">to appear</span>' : ''),
-      venue: deriveVenue(e),
+      venue: under ? preprintVenue(e, links) : deriveVenue(e),
       year: parseInt(e.fields.year ?? '0', 10) || 0,
       month: parseInt((e.fields.month ?? '0').replace(/[^\d]/g, ''), 10) || 0,
-      note: e.type === 'unpublished' ? '' : cleanNote(e.fields.note), // venue already carries it
-      links: deriveLinks(e),
+      // under review: the section already says "submitted"; unpublished: the venue carries the note
+      note: under || e.type === 'unpublished' ? '' : cleanNote(e.fields.note),
+      links,
     };
   });
   pubs.sort((a, b) => b.year - a.year || b.month - a.month);

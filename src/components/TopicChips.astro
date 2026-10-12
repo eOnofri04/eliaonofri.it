@@ -1,0 +1,51 @@
+---
+// Topic chips for any classified object, labelled "Category | Subcategory": field
+// chips are tinted with the field colour, application chips carry a coloured dot
+// (as in the collaboration graph), free `extra` tags are neutral.
+// With `clickable`, each chip is a button that toggles the matching filter of the
+// enclosing FacetFilters target (handled by FacetFilters' script).
+import type { Chip } from '@/lib/taxonomy';
+
+interface Props { chips: Chip[]; extra?: string[]; clickable?: boolean; }
+const { chips, extra = [], clickable = false } = Astro.props;
+---
+{chips.map((c) => {
+  const style = `--c: var(--${c.facet === 'app' ? 'a' : 'f'}-${c.id})`;
+  return clickable
+    ? <button type="button" class={`tchip tchip--${c.facet} is-btn`} style={style}
+        data-facet={c.facet} data-id={c.id} title={`Filter by ${c.label}`}>{c.label}</button>
+    : <span class={`tchip tchip--${c.facet}`} style={style}>{c.label}</span>;
+})}
+{extra.map((t) => <span class="tchip tchip--extra">{t}</span>)}
+
+<style>
+  .tchip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-family: var(--mono);
+    font-size: 0.68rem;
+    color: var(--ink-soft);
+    border: 1px solid var(--rule-soft);
+    border-radius: 12px;
+    padding: 2px 9px;
+    white-space: nowrap;
+  }
+  .tchip--field {
+    color: var(--ink);
+    background: color-mix(in srgb, var(--c) 20%, transparent);
+    border-color: color-mix(in srgb, var(--c) 45%, transparent);
+  }
+  .tchip--app { background: var(--panel-2); }
+  .tchip--app::before {
+    content: '';
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--c);
+  }
+  .tchip--extra { color: var(--muted); background: transparent; }
+  .tchip.is-btn { cursor: pointer; transition: border-color 0.15s, box-shadow 0.15s; }
+  .tchip.is-btn:hover { border-color: var(--muted); }
+  .tchip.is-btn.on { border-color: var(--c); box-shadow: 0 0 0 1px var(--c); }
+</style>

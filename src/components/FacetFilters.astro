@@ -1,0 +1,144 @@
+---
+// Two rows of filter chips — field and application — combined with AND.
+// Clicking the active chip again clears it; topic chips inside the target
+// (TopicChips with `clickable`) toggle the same filters.
+// Filters every element carrying data-fields / data-apps inside #{target};
+// elements marked [data-section] are hidden when none of their items remain,
+// and #{target}-empty (if present) is shown when nothing matches at all.
+import type { Facet } from '@/lib/taxonomy';
+
+interface Props { target: string; fields: Facet[]; apps: Facet[]; }
+const { target, fields, apps } = Astro.props;
+const rows = [
+  { facet: 'field', label: 'Field', items: fields },
+  { facet: 'app', label: 'Application', items: apps },
+].filter((r) => r.items.length > 0);
+---
+<div class="facets" data-target={target}>
+  {rows.map((r) => (
+    <div class="facet-row" role="group" aria-label={r.label} data-row={r.facet}>
+      <span class="facet-label">{r.label}</span>
+      <button type="button" class="fchip active" data-facet={r.facet} data-id="all">All</button>
+      {r.items.map((f) => (
+        <button type="button" class={`fchip fchip--${r.facet}`} data-facet={r.facet} data-id={f.id}
+          style={`--c: var(--${r.facet === 'app' ? 'a' : 'f'}-${f.id})`}>{f.label}</button>
+      ))}
+    </div>
+  ))}
+</div>
+
+<script>
+  document.querySelectorAll<HTMLElement>('.facets').forEach((box) => {
+    const root = document.getElementById(box.dataset.target!);
+    if (!root) return;
+    const empty = document.getElementById(`${box.dataset.target}-empty`);
+    const sel: Record<string, string> = { field: 'all', app: 'all' };
+
+    function apply(facet: string, id: string) {
+      sel[facet] = sel[facet] === id ? 'all' : id; // a second click clears the filter
+      box.querySelectorAll<HTMLButtonElement>(`button[data-facet="${facet}"]`)
+        .forEach((b) => b.classList.toggle('active', b.dataset.id === sel[facet]));
+      // with a selection in a row, the other buttons of that row turn grey
+      box.querySelector(`.facet-row[data-row="${facet}"]`)?.classList.toggle('has-sel', sel[facet] !== 'all');
+      root!.querySelectorAll<HTMLElement>('.tchip[data-facet]')
+        .forEach((c) => c.classList.toggle('on', sel[c.dataset.facet!] === c.dataset.id));
+
+      let shown = 0;
+      root!.querySelectorAll<HTMLElement>('[data-fields]').forEach((el) => {
+        const fields = (el.dataset.fields ?? '').split(' ');
+        const apps = (el.dataset.apps ?? '').split(' ');
+        const ok = (sel.field === 'all' || fields.includes(sel.field))
+          && (sel.app === 'all' || apps.includes(sel.app));
+        el.hidden = !ok;
+        if (ok) shown++;
+      });
+      root!.querySelectorAll<HTMLElement>('[data-section]').forEach((s) => {
+        s.hidden = !s.querySelector('[data-fields]:not([hidden])');
+      });
+      if (empty) empty.hidden = shown !== 0;
+    }
+
+    box.addEventListener('click', (ev) => {
+      const btn = (ev.target as HTMLElement).closest<HTMLButtonElement>('button[data-facet]');
+      if (!btn) return;
+      apply(btn.dataset.facet!, btn.dataset.id!);
+    });
+
+    // topic chips on the items act as shortcuts to the same filters
+    root.addEventListener('click', (ev) => {
+      const chip = (ev.target as HTMLElement).closest<HTMLElement>('.tchip[data-facet]');
+      if (!chip) return;
+      const item = chip.closest<HTMLElement>('[data-fields]');
+      apply(chip.dataset.facet!, chip.dataset.id!);
+      // keep the clicked entry in view as the list reflows around it
+      if (item && !item.hidden) item.scrollIntoView({ block: 'center' });
+    });
+  });
+</script>
+
+<style>
+  .facets {
+    display: grid;
+    gap: 8px;
+    margin-bottom: 28px;
+  }
+  .facet-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+  }
+  .facet-label {
+    font-family: var(--mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+    min-width: 7.5em;
+  }
+  .fchip {
+    --c: var(--teal);
+    font-family: var(--mono);
+    font-size: 0.78rem;
+    color: var(--muted);
+    background: transparent;
+    border: 1px solid var(--rule);
+    border-radius: 20px;
+    padding: 4px 13px;
+    cursor: pointer;
+    transition: color 0.18s, border-color 0.18s, background 0.18s;
+  }
+  .fchip:hover { color: var(--ink-soft); border-color: var(--muted); }
+  .fchip.active {
+    color: var(--ink);
+    border-color: var(--c);
+    background: color-mix(in srgb, var(--c) 22%, transparent);
+  }
+  /* fields: tinted like their chips; applications: the dot used in chips and graph */
+  .fchip--field {
+    color: var(--ink-soft);
+    background: color-mix(in srgb, var(--c) 12%, transparent);
+    border-color: color-mix(in srgb, var(--c) 35%, transparent);
+  }
+  .fchip--field.active { background: color-mix(in srgb, var(--c) 34%, transparent); border-color: var(--c); }
+  /* with a selection in the row, the other buttons lose their colour (properties are
+     overridden directly, since each button sets --c inline) */
+  .facet-row.has-sel .fchip--field:not(.active) {
+    color: var(--muted);
+    background: transparent;
+    border-color: var(--rule);
+  }
+  .facet-row.has-sel .fchip--app:not(.active) { color: var(--muted); }
+  .facet-row.has-sel .fchip--app:not(.active)::before { background: var(--rule); }
+  .fchip--app { display: inline-flex; align-items: center; gap: 7px; }
+  .fchip--app::before {
+    content: '';
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--c);
+  }
+  @media (max-width: 560px) {
+    .facet-label { min-width: 100%; }
+  }
+</style>

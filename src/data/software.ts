@@ -80,13 +80,24 @@ export const projects: SwProject[] = [
     name: 'mR_LWE-CP-ABE',
     tagline: 'Revocable post-quantum attribute-based encryption',
     blurb:
-      'A lattice-based, revocable CP-ABE scheme for post-quantum cryptography, with a cross-primitive comparison of lattices versus bilinear pairings.',
+      'A lattice-based, revocable CP-ABE scheme for post-quantum cryptography, built on the ring-LWE problem.',
     tags: ['Cryptography', 'Lattices', 'Post-quantum'],
     color: 'teal',
     links: [
-      { label: 'Paper Revocation', href: 'https://doi.org/10.1515/jmc-2023-0026' },
-      { label: 'Paper Comparison', href: 'https://doi.org/10.1515/jmc-2025-0051' },
+      { label: 'Paper', href: 'https://doi.org/10.1515/jmc-2023-0026' },
+    ],
+  },
+  {
+    name: 'Cross-primitive comparison in CP-ABE',
+    tagline: 'Bilinear pairings versus lattices, benchmarked',
+    blurb:
+      'The implementation behind the experiments comparing pairing-based and lattice-based CP-ABE, packaged with Docker for reproducibility; a preliminary version appeared at FCiR 2025.',
+    tags: ['C++', 'Docker', 'Cryptography', 'Lattices'],
+    color: 'teal',
+    links: [
       { label: 'GitHub', href: 'https://github.com/eOnofri04/Cross-primitive-comparison-in-CP-ABE' },
+      { label: 'Paper', href: 'https://doi.org/10.1515/jmc-2025-0051' },
+      { label: 'Preliminary', href: 'https://doi.org/10.69091/koine/vol-8-P10' },
     ],
   },
   {
@@ -105,12 +116,12 @@ export const projects: SwProject[] = [
     name: 'COD-ssi',
     tagline: 'Credential oblivious disclosure for self-sovereign identity',
     blurb:
-      'A protocol enforcing mutual privacy for credential disclosure in self-sovereign-identity settings.',
-    tags: ['Cryptography', 'Privacy', 'Self-sovereign identity'],
+      'A protocol enforcing mutual privacy for credential disclosure in self-sovereign-identity settings; the repository holds the proof-of-concept implementation, the benchmark data, and the notebook reproducing the evaluation.',
+    tags: ['Python', 'JavaScript', 'Privacy', 'Self-sovereign identity'],
     color: 'teal',
     links: [
-      { label: 'GitHub', href: 'https://github.com/eOnofri04/COD-ssi', soon: true },
-      { label: 'arXiv', href: 'https://arxiv.org/abs/2604.10685' },
+      { label: 'GitHub', href: 'https://github.com/eOnofri04/COD-ssi' },
+      { label: 'Paper', href: 'https://doi.org/10.1007/978-3-032-38695-3_11' },
     ],
   },
   {
@@ -150,6 +161,21 @@ export const projects: SwProject[] = [
       { label: 'GitHub APORIA', href: 'https://github.com/eOnofri04/APORIA' },
       { label: 'arXiv', href: 'https://arxiv.org/abs/2602.14778' },
       { label: 'paper', href: 'https://arxiv.org/abs/2602.14778', soon: true },
+    ],
+  },
+  {
+    name: 'RAIM',
+    tagline: 'Robust aggregation of inexpensive LLM judges for hallucination detection',
+    blurb:
+      'A panel of ten cheap open-weight LLM judges run over eight hallucination-detection benchmarks, aggregated by a stacked model and tested against frontier judges with a paired cluster bootstrap. Released in two halves: every recorded verdict, and the analysis that regenerates each table and figure deterministically on a laptop.',
+    tags: ['Python', 'LLMs', 'Hallucination detection', 'Reproducibility'],
+    color: 'purple',
+    links: [
+      { label: 'GitHub verdicts', href: 'https://github.com/eOnofri04/raim-verdicts' },
+      { label: 'GitHub analysis', href: 'https://github.com/eOnofri04/raim-analysis' },
+      { label: 'Zenodo verdicts', href: 'https://doi.org/10.5281/zenodo.23233720' },
+      { label: 'Zenodo analysis', href: 'https://doi.org/10.5281/zenodo.23233733' },
+      { label: 'arXiv', href: 'https://arxiv.org/abs/2609.39229' },
     ],
   },
   {
@@ -217,5 +243,16 @@ export const projects: SwProject[] = [
     tags: ['LaTeX', 'LuaLaTeX', 'TikZ'],
     color: 'teal',
     links: [{ label: 'CV', href: '/cv' }],
+  },
+  {
+    name: 'eliaonofri.it',
+    tagline: 'This website',
+    blurb:
+      'A static Astro site: publications rendered from the CV’s BibTeX, a two-facet topic map shared by every page, a force-directed co-authorship graph, and OpenAlex citation metrics, deployed to GitHub Pages.',
+    tags: ['Astro', 'TypeScript', 'd3-force'],
+    color: 'gold',
+    links: [
+      { label: 'GitHub', href: 'https://github.com/eOnofri04/eliaonofri.it', soon: true },
+    ],
   },
 ];
