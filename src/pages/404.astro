@@ -1,0 +1,284 @@
+---
+// Not-found page (served by GitHub Pages for any missing path).
+// The message arrives encrypted with a Caesar shift. The gear is a slider on a rail:
+// its position is the shift applied to the ciphertext, so moving it to KEY decrypts the
+// message; the arrows step it by one, and "decrypt" rolls it there. Without JavaScript
+// the plain message is shown.
+import BaseLayout from '@/layouts/BaseLayout.astro';
+
+const MAX = 25;   // shifts 0..25
+const KEY = 19;   // the shift that decrypts
+
+// a twelve-tooth gear, centred on (100, 100); one step of the slider turns it by one tooth
+const TEETH = 12;
+const R_OUT = 96, R_ROOT = 82;
+const deg = (d: number) => (d * Math.PI) / 180;
+const pt = (r: number, a: number) => `${(100 + r * Math.cos(deg(a))).toFixed(2)} ${(100 + r * Math.sin(deg(a))).toFixed(2)}`;
+const step = 360 / TEETH;
+let gear = '';
+for (let i = 0; i < TEETH; i++) {
+  const a = i * step - 90;
+  gear += `${i === 0 ? 'M' : 'L'} ${pt(R_ROOT, a - 9)} L ${pt(R_OUT, a - 6)} L ${pt(R_OUT, a + 6)} L ${pt(R_ROOT, a + 9)} `;
+  gear += `A ${R_ROOT} ${R_ROOT} 0 0 1 ${pt(R_ROOT, a + step - 9)} `;
+}
+gear += 'Z';
+---
+<BaseLayout title="Not found" description="This page does not exist." noindex>
+  <div class="wrap page-body nf">
+    <h1 class="nf-msg" id="nf-msg" data-plain="Page not found">Page not found</h1>
+
+    <div class="nf-track">
+    <button class="nf-step" type="button" data-step="-1" aria-label="Shift left">‹</button>
+    <div class="nf-slider" id="nf-slider" role="slider" tabindex="0"
+      aria-label="Decryption shift" aria-valuemin="0" aria-valuemax={MAX} aria-valuenow={KEY}
+      data-max={MAX} data-key={KEY} style={`--k: ${KEY}; --max: ${MAX}`}>
+      <div class="nf-rail"><div class="nf-ticks"></div></div>
+      <svg class="nf-cog" viewBox="0 0 200 200" aria-hidden="true">
+        <path class="nf-teeth" d={gear} />
+        <circle class="nf-hub" cx="100" cy="100" r="66" />
+        <text class="nf-num" x="100" y="100" text-anchor="middle" dominant-baseline="central">404</text>
+      </svg>
+    </div>
+    <button class="nf-step" type="button" data-step="1" aria-label="Shift right">›</button>
+    </div>
+
+    <div class="nf-controls">
+      <span class="nf-rot" id="nf-rot">ROT{KEY}</span>
+      <button class="nf-decrypt" id="nf-decrypt" type="button">decrypt</button>
+    </div>
+
+    <p class="nf-erdos">This page has an Erdős number of ∞.</p>
+
+    <nav class="nf-links" aria-label="Elsewhere">
+      <a href="/">Home</a>
+      <a href="/publications">Publications</a>
+      <a href="/research">Research</a>
+    </nav>
+  </div>
+</BaseLayout>
+
+<script>
+  const msg = document.getElementById('nf-msg')!;
+  const slider = document.getElementById('nf-slider')!;
+  const rot = document.getElementById('nf-rot')!;
+  const btn = document.getElementById('nf-decrypt')!;
+  const MAX = Number(slider.dataset.max);
+  const KEY = Number(slider.dataset.key);
+  const plain = msg.dataset.plain!;
+  const shift = (s: string, k: number) => s.replace(/[a-z]/gi, (ch) => {
+    const base = ch <= 'Z' ? 65 : 97;
+    return String.fromCharCode(((ch.charCodeAt(0) - base + k) % 26) + base);
+  });
+  const cipher = shift(plain, 26 - KEY);   // shifting it by KEY gives the plain text back
+
+  let k = 0;
+  let timer: number | undefined;
+  function set(v: number) {
+    k = Math.max(0, Math.min(MAX, Math.round(v)));
+    slider.style.setProperty('--k', String(k));
+    slider.setAttribute('aria-valuenow', String(k));
+    msg.textContent = shift(cipher, k);
+    rot.textContent = `ROT${k}`;
+    slider.classList.toggle('solved', k === KEY);
+  }
+
+  // pointer: the gear's centre follows the pointer along the rail, snapping to whole shifts
+  function fromPointer(ev: PointerEvent) {
+    const r = slider.getBoundingClientRect();
+    const g = slider.querySelector('.nf-cog')!.getBoundingClientRect().width;
+    set(((ev.clientX - r.left - g / 2) / (r.width - g)) * MAX);
+  }
+  slider.addEventListener('pointerdown', (ev) => {
+    window.clearInterval(timer);
+    slider.setPointerCapture(ev.pointerId);
+    slider.classList.add('dragging');
+    fromPointer(ev);
+  });
+  slider.addEventListener('pointermove', (ev) => {
+    if (slider.hasPointerCapture(ev.pointerId)) fromPointer(ev);
+  });
+  slider.addEventListener('pointerup', () => slider.classList.remove('dragging'));
+  slider.addEventListener('keydown', (ev) => {
+    const moves: Record<string, number> = { ArrowLeft: -1, ArrowDown: -1, ArrowRight: 1, ArrowUp: 1 };
+    if (ev.key in moves) set(k + moves[ev.key]);
+    else if (ev.key === 'Home') set(0);
+    else if (ev.key === 'End') set(MAX);
+    else return;
+    ev.preventDefault();
+  });
+
+  // the arrows step the gear by one shift
+  document.querySelectorAll<HTMLButtonElement>('.nf-step').forEach((b) =>
+    b.addEventListener('click', () => {
+      window.clearInterval(timer);
+      set(k + Number(b.dataset.step));
+    }));
+
+  // "decrypt" rolls the gear to the key, one shift at a time
+  btn.addEventListener('click', () => {
+    window.clearInterval(timer);
+    timer = window.setInterval(() => {
+      if (k === KEY) return window.clearInterval(timer);
+      set(k + Math.sign(KEY - k));
+    }, 80);
+  });
+
+  set(0);
+</script>
+
+<style>
+  .nf {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    min-height: 60vh;
+    justify-content: center;
+  }
+  .nf-msg {
+    font-family: var(--mono);
+    font-weight: 500;
+    font-size: clamp(1.6rem, 6vw, 2.4rem);
+    letter-spacing: 0.02em;
+    margin: 0 0 34px;
+    white-space: pre;
+  }
+
+  /* the slider: a long toggle-like rail, with the gear as its knob, between two arrows */
+  .nf-track {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: min(640px, 100%);
+  }
+  .nf-step {
+    flex: none;
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    border: 1px solid var(--rule);
+    background: transparent;
+    color: var(--muted);
+    font-size: 1.3rem;
+    line-height: 1;
+    cursor: pointer;
+  }
+  .nf-step:hover { color: var(--gold); border-color: var(--gold); }
+  .nf-slider {
+    --g: 96px;   /* gear diameter */
+    position: relative;
+    flex: 1;
+    min-width: 0;
+    height: var(--g);
+    touch-action: none;
+    cursor: grab;
+    user-select: none;
+    border-radius: 999px;
+  }
+  .nf-slider.dragging { cursor: grabbing; }
+  .nf-slider:focus-visible { outline: 2px solid var(--teal); outline-offset: 6px; }
+  .nf-rail {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 50%;
+    height: 22px;
+    transform: translateY(-50%);
+    background: var(--panel-2);
+    border: 1px solid var(--rule);
+    border-radius: 999px;
+  }
+  /* one notch per shift, aligned with the possible centres of the gear */
+  .nf-ticks {
+    position: absolute;
+    left: calc(var(--g) / 2);
+    right: calc(var(--g) / 2);
+    top: 6px;
+    bottom: 6px;
+    background: linear-gradient(to right, var(--rule) 1px, transparent 1px) 0 0 / calc(100% / 25 - 0.04px) 100% repeat-x;
+    border-right: 1px solid var(--rule);
+  }
+  .nf-cog {
+    position: absolute;
+    top: 0;
+    left: calc(var(--k) / var(--max) * (100% - var(--g)));
+    width: var(--g);
+    height: var(--g);
+    transform: rotate(calc(var(--k) * 30deg));
+    transition: left 0.12s ease-out, transform 0.12s ease-out;
+    filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.25));
+  }
+  .nf-slider.dragging .nf-cog { transition-duration: 0.06s; }
+  .nf-teeth { fill: var(--gold); }
+  .nf-hub {
+    fill: var(--bg);
+    stroke: var(--gold);
+    stroke-width: 5;
+  }
+  .nf-num {
+    fill: var(--gold);
+    font-family: var(--mono);
+    font-weight: 700;
+    font-size: 50px;
+    letter-spacing: -0.02em;
+  }
+  /* the number stays upright while the gear turns */
+  .nf-num {
+    transform-origin: 100px 100px;
+    transform: rotate(calc(var(--k) * -30deg));
+    transition: transform 0.12s ease-out;
+  }
+  .nf-slider.dragging .nf-num { transition-duration: 0.06s; }
+  .nf-slider.solved .nf-hub { fill: color-mix(in srgb, var(--gold) 14%, var(--bg)); }
+  @media (prefers-reduced-motion: reduce) {
+    .nf-cog, .nf-num { transition: none; }
+  }
+
+  .nf-controls {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin: 18px 0 36px;
+  }
+  .nf-rot {
+    font-family: var(--mono);
+    font-size: 0.8rem;
+    color: var(--muted);
+    min-width: 5ch;
+    text-align: right;
+  }
+  .nf-decrypt {
+    font-family: var(--mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.1em;
+    color: var(--muted);
+    background: transparent;
+    border: 1px solid var(--rule);
+    border-radius: 12px;
+    padding: 3px 12px;
+    cursor: pointer;
+  }
+  .nf-decrypt:hover { color: var(--gold); border-color: var(--gold); }
+  .nf-erdos {
+    font-family: var(--serif);
+    font-style: italic;
+    font-size: 1.2rem;
+    color: var(--ink-soft);
+    margin: 0 0 30px;
+  }
+  .nf-links {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 10px 22px;
+    font-family: var(--mono);
+    font-size: 0.85rem;
+  }
+  .nf-links a { color: var(--teal); }
+  .nf-links a:hover { text-decoration: underline; }
+  @media (max-width: 560px) {
+    .nf-slider { --g: 72px; }
+    .nf-track { gap: 6px; }
+    .nf-step { width: 30px; height: 30px; }
+  }
+</style>
