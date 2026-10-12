@@ -2,10 +2,34 @@
 import BaseLayout from '@/layouts/BaseLayout.astro';
 import HighlightCard from '@/components/HighlightCard.astro';
 import Chip from '@/components/Chip.astro';
-import { affiliations } from '@/data/affiliations';
+import { affiliations, linkify } from '@/data/affiliations';
+import { highlights, researchAreas } from '@/data/highlights';
 const primary = affiliations.filter(a => a.primary);
 const secondary = affiliations.filter(a => !a.primary);
-import { highlights, researchAreas } from '@/data/highlights';
+
+// identifier row: logos on theme-coloured tiles; `dark` marks logos with a light variant
+// (`<logo>-dark.webp`) for the dark theme. Math Genealogy and e-mail use inline glyphs.
+const ids = [
+  { label: 'ORCID',            href: 'https://orcid.org/0000-0001-8391-2563', logo: 'orcid' },
+  { label: 'Google Scholar',   href: 'https://scholar.google.com/citations?user=7IAjzlEAAAAJ', logo: 'scholar' },
+  { label: 'Scopus',           href: 'https://www.scopus.com/authid/detail.uri?authorId=57215199778', logo: 'scopus' },
+  { label: 'Web of Science',   href: 'https://www.webofscience.com/wos/author/record/AAA-8888-2022', logo: 'wos', dark: true },
+  { label: 'Semantic Scholar', href: 'https://www.semanticscholar.org/author/Elia-Onofri/1389066185', logo: 'semanticscholar', dark: true },
+  { label: 'ResearchGate',     href: 'https://www.researchgate.net/profile/Elia-Onofri', logo: 'researchgate' },
+  { label: 'GitHub',           href: 'https://github.com/eOnofri04', logo: 'github', dark: true },
+  { label: 'LinkedIn',         href: 'https://www.linkedin.com/in/elia-onofri-80b403173/', logo: 'linkedin' },
+  { label: 'YouTube',          href: 'https://www.youtube.com/@eliaonofri7623', logo: 'youtube' },
+  { label: 'Mathematics Genealogy Project', href: 'https://www.mathgenealogy.org/id.php?id=307607', glyph: 'tree' },
+  { label: 'E-mail',           href: 'mailto:elia.onofri@kaust.edu.sa', glyph: 'mail' },
+];
+
+// Erdős-number chain, linked where a page exists
+const erdos = [
+  { name: 'Erdős',    href: 'https://scholar.google.com/citations?user=cVeVZ1YAAAAJ&hl=en' },
+  { name: 'Komornik', href: 'https://irma.math.unistra.fr/~komornik/index.html' },
+  { name: 'Pedicini', href: 'https://www.mat.uniroma3.it/users/pedicini/' },
+  { name: 'Onofri' },
+];
 ---
 <BaseLayout
   title="Home"
@@ -20,7 +44,9 @@ import { highlights, researchAreas } from '@/data/highlights';
 
         {primary.map(a => (
           <p class="primary-affil">
-            <span class="primary-role">{a.role}</span>
+            <span class="primary-role">{linkify(a.role, a.links).map(seg => seg.href
+              ? <a href={seg.href} target="_blank" rel="noopener">{seg.text}</a>
+              : seg.text)}</span>
             {a.url
               ? <a href={a.url} target="_blank" rel="noopener" class="primary-org">{a.org}</a>
               : <span class="primary-org">{a.org}</span>
@@ -37,24 +63,39 @@ import { highlights, researchAreas } from '@/data/highlights';
           {secondary.map(a => (
             <li class={`affil affil--${a.color}`}>
               <strong>{a.role}</strong>
-              {a.url
+              {a.url && !a.links
                 ? <a href={a.url} target="_blank" rel="noopener" class="org">{a.org}</a>
-                : <span class="org">{a.org}</span>
+                : <span class="org">{linkify(a.org, a.links).map(seg => seg.href
+                    ? <a href={seg.href} target="_blank" rel="noopener">{seg.text}</a>
+                    : seg.text)}</span>
               }
             </li>
           ))}
         </ul>
 
-        <p class="erdos">My Erdős number is <strong>3</strong> &mdash; Erdős · Komornik · Pedicini · Onofri</p>
+        <p class="erdos">My Erdős number is <strong>3</strong> &mdash; {erdos.map((p, i) => (
+          <>{i > 0 && ' · '}{p.href ? <a href={p.href} target="_blank" rel="noopener">{p.name}</a> : p.name}</>
+        ))}</p>
 
         <div class="id-row">
-          <a href="https://orcid.org/0000-0001-8391-2563" target="_blank" rel="noopener">ORCID</a>
-          <a href="https://scholar.google.com/citations?user=7IAjzlEAAAAJ" target="_blank" rel="noopener">Scholar</a>
-          <a href="https://www.scopus.com/authid/detail.uri?authorId=57215199778" target="_blank" rel="noopener">Scopus</a>
-          <a href="https://github.com/eOnofri04" target="_blank" rel="noopener">GitHub</a>
-          <a href="https://www.linkedin.com/in/elia-onofri-80b403173/" target="_blank" rel="noopener">LinkedIn</a>
-          <a href="https://www.mathgenealogy.org/id.php?id=307607" target="_blank" rel="noopener">Math Genealogy</a>
-          <a href="mailto:elia.onofri@kaust.edu.sa">Email</a>
+          {ids.map(i => (
+            <a href={i.href} title={i.label} aria-label={i.label}
+              {...(i.href.startsWith('mailto:') ? {} : { target: '_blank', rel: 'noopener' })}>
+              {i.logo && <img class={i.dark ? 'logo-light' : undefined} src={`/logos/${i.logo}.webp`} alt="" width="22" height="22" loading="lazy" />}
+              {i.dark && <img class="logo-dark" src={`/logos/${i.logo}-dark.webp`} alt="" width="22" height="22" loading="lazy" />}
+              {i.glyph === 'tree' && (
+                <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
+                  <circle cx="12" cy="4.5" r="2.2" /><circle cx="5.5" cy="19" r="2.2" /><circle cx="12" cy="19" r="2.2" /><circle cx="18.5" cy="19" r="2.2" />
+                  <path d="M12 6.7v10.1M12 11.5H5.5v5.3M12 11.5h6.5v5.3" />
+                </svg>
+              )}
+              {i.glyph === 'mail' && (
+                <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round">
+                  <rect x="3" y="5.5" width="18" height="13" rx="2" /><path d="M3.5 6.5 12 13l8.5-6.5" />
+                </svg>
+              )}
+            </a>
+          ))}
         </div>
       </div>
 
@@ -201,32 +242,41 @@ import { highlights, researchAreas } from '@/data/highlights';
   }
   .erdos strong { color: var(--teal); font-weight: 600; }
 
-  /* identifier row */
+  .primary-role a, .org a, .erdos a {
+    color: inherit;
+    text-decoration: underline;
+    text-decoration-color: var(--rule);
+    text-underline-offset: 3px;
+    transition: color 0.18s, text-decoration-color 0.18s;
+  }
+  .primary-role a:hover, .org a:hover, .erdos a:hover { color: var(--teal); text-decoration-color: var(--teal); }
+
+  /* identifier row: logos on tiles in the template's panel colour */
   .id-row {
     display: flex;
     flex-wrap: wrap;
-    gap: 0;
-    font-family: var(--mono);
-    font-size: 0.82rem;
+    gap: 8px;
   }
   .id-row a {
-    color: var(--muted);
-    padding: 4px 14px;
-    position: relative;
-    transition: color 0.18s;
+    display: grid;
+    place-items: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 9px;
+    background: var(--panel-2);
+    border: 1px solid var(--rule);
+    color: var(--ink-soft);
+    transition: transform 0.18s, border-color 0.18s, box-shadow 0.18s;
   }
-  .id-row a:first-child { padding-left: 0; }
-  .id-row a + a::before {
-    content: '';
-    position: absolute;
-    left: 0;
-    top: 50%;
-    transform: translateY(-50%);
-    width: 1px;
-    height: 13px;
-    background: var(--rule);
+  .id-row a:hover {
+    transform: translateY(-2px);
+    border-color: var(--teal);
+    box-shadow: 0 0 0 1px var(--teal);
   }
-  .id-row a:hover { color: var(--teal); }
+  .id-row img { display: block; width: 22px; height: 22px; object-fit: contain; }
+  /* dark is the default theme; light is opted into via data-theme */
+  :global(:root[data-theme='light']) .id-row .logo-dark { display: none; }
+  :global(:root:not([data-theme='light'])) .id-row .logo-light { display: none; }
 
   /* hero artwork */
   .hero-art {
