@@ -6,8 +6,9 @@
     "dev": "astro dev",
     "build": "astro build",
     "preview": "astro preview",
-    "sync:bib": "cp ../docs/CV/bibdesk-database.bib src/data/publications.bib",
-    "metrics": "node scripts/fetch-metrics.mjs"
+    "sync:bib": "cp CV_repo/bibdesk-database.bib src/data/publications.bib",
+    "metrics": "node scripts/fetch-metrics.mjs",
+    "sync:cv": "npm run sync:bib && for t in light dark; do f=CV_repo/CV_Onofri_$t.pdf; if [ -f $f ]; then cp $f public/cv/ && echo \"copied $f\"; else echo \"skipped $f (not found)\"; fi; done"
   },
   "dependencies": {
     "@astrojs/sitemap": "^3.7.3",
