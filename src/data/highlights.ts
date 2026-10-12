@@ -12,6 +12,14 @@ export interface Highlight {
 export const highlights: Highlight[] = [
   {
     kind: 'Talk',
+    date: 'Sep 2026',
+    title: 'COD-ssi: Enforcing Mutual Privacy for Credential Oblivious Disclosure in Self-Sovereign Identity',
+    detail: 'ESORICS 2026 · Rome, Italy',
+    color: 'teal',
+    href: '/research',
+  },
+  {
+    kind: 'Talk',
     date: 'Jul 2026',
     title: 'A Geometric Analysis of Small-sized LLM Hallucinations',
     detail: 'ICML 2026 · Seoul, South Korea',
@@ -31,13 +39,6 @@ export const highlights: Highlight[] = [
     detail: 'Master in Data Analytics · Roma Tre',
     color: 'gold',
     href: '/teaching',
-  },
-  {
-    kind: 'Primer',
-    date: '14 May 2026',
-    title: 'Git: a 40-minute primer for researchers',
-    detail: 'CRI-Lab · KAUST',
-    color: 'teal',
   },
 ];
 
