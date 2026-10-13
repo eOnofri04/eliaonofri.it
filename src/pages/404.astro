@@ -33,11 +33,13 @@ gear += 'Z';
       aria-label="Decryption shift" aria-valuemin="0" aria-valuemax={MAX} aria-valuenow={KEY}
       data-max={MAX} data-key={KEY} style={`--k: ${KEY}; --max: ${MAX}`}>
       <div class="nf-rail"><div class="nf-ticks"></div></div>
-      <svg class="nf-cog" viewBox="0 0 200 200" aria-hidden="true">
-        <path class="nf-teeth" d={gear} />
-        <circle class="nf-hub" cx="100" cy="100" r="66" />
-        <text class="nf-num" x="100" y="100" text-anchor="middle" dominant-baseline="central">404</text>
-      </svg>
+      <div class="nf-cog" aria-hidden="true">
+        <svg class="nf-teeth" viewBox="0 0 200 200"><path d={gear} /></svg>
+        <svg class="nf-face" viewBox="0 0 200 200">
+          <circle class="nf-hub" cx="100" cy="100" r="66" />
+          <text class="nf-num" x="100" y="100" dy="0.35em" text-anchor="middle">404</text>
+        </svg>
+      </div>
     </div>
     <button class="nf-step" type="button" data-step="1" aria-label="Shift right">›</button>
     </div>
@@ -198,18 +200,31 @@ gear += 'Z';
     background: linear-gradient(to right, var(--rule) 1px, transparent 1px) 0 0 / calc(100% / 25 - 0.04px) 100% repeat-x;
     border-right: 1px solid var(--rule);
   }
+  /* Only the teeth turn, as a whole element; the hub and the number sit still on top.
+     (No transforms inside the SVGs: Safari misplaces those when the page is zoomed.) */
   .nf-cog {
     position: absolute;
     top: 0;
     left: calc(var(--k) / var(--max) * (100% - var(--g)));
     width: var(--g);
     height: var(--g);
-    transform: rotate(calc(var(--k) * 30deg));
-    transition: left 0.12s ease-out, transform 0.12s ease-out;
+    transition: left 0.12s ease-out;
     filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.25));
   }
-  .nf-slider.dragging .nf-cog { transition-duration: 0.06s; }
-  .nf-teeth { fill: var(--gold); }
+  .nf-cog svg {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    display: block;
+  }
+  .nf-teeth {
+    fill: var(--gold);
+    transform: rotate(calc(var(--k) * 30deg));
+    transition: transform 0.12s ease-out;
+  }
+  .nf-slider.dragging .nf-cog,
+  .nf-slider.dragging .nf-teeth { transition-duration: 0.06s; }
   .nf-hub {
     fill: var(--bg);
     stroke: var(--gold);
@@ -222,16 +237,10 @@ gear += 'Z';
     font-size: 50px;
     letter-spacing: -0.02em;
   }
-  /* the number stays upright while the gear turns */
-  .nf-num {
-    transform-origin: 100px 100px;
-    transform: rotate(calc(var(--k) * -30deg));
-    transition: transform 0.12s ease-out;
-  }
-  .nf-slider.dragging .nf-num { transition-duration: 0.06s; }
   .nf-slider.solved .nf-hub { fill: color-mix(in srgb, var(--gold) 14%, var(--bg)); }
   @media (prefers-reduced-motion: reduce) {
-    .nf-cog, .nf-num { transition: none; }
+    .nf-cog, .nf-teeth { transition: none; }
+  }
   }
 
   .nf-controls {
