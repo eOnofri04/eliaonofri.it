@@ -5,6 +5,7 @@
 .tier-silver { --tl: #f1f3f5; --tm: #b9c0c7; --td: #7c858e; }
 .tier-gold { --tl: #ffe08a; --tm: #e0b354; --td: #a07a2a; }
 .tier-platinum { --tl: #eaf6ff; --tm: #9cc6ea; --td: #5b86b0; }
+.tier-level { --tl: #e0b354; --tm: #4e9286; --td: #2f5f57; }
 .egg-item:not(.got) { --tl: var(--rule); --tm: var(--rule); --td: var(--rule-soft); }
 
 /* toasts */
@@ -39,6 +40,7 @@
 }
 .egg-toast.in { opacity: 1; transform: none; }
 .egg-toast svg { width: 30px; height: 30px; flex: none; }
+.egg-toast.tier-level { border-left-color: var(--teal); }
 .egg-toast strong { display: block; font-family: var(--serif); font-size: 1rem; }
 .egg-kind {
   display: block;
@@ -72,6 +74,16 @@
   padding: 18px 22px 10px;
 }
 .egg-head h2 { font-family: var(--serif); font-size: 1.4rem; margin: 0; }
+.egg-level {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin: 2px 0 0;
+  font-family: var(--mono);
+  font-size: 0.78rem;
+  color: var(--teal);
+}
+.egg-level svg { width: 18px; height: 14px; }
 .egg-close {
   width: 36px;
   height: 36px;

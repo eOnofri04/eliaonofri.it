@@ -30,6 +30,8 @@ jobs:
       # Refresh citation metrics from OpenAlex; on failure the script keeps the
       # committed metrics.json (exit 0), so the build never breaks offline.
       - run: npm run metrics
+      # A fresh mate-in-two puzzle from Lichess for the CV page; same fallback.
+      - run: npm run puzzle
       - run: npm run build
       - uses: actions/upload-pages-artifact@v3
         with:

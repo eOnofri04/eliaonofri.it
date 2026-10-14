@@ -2,6 +2,7 @@
 import BaseLayout from '@/layouts/BaseLayout.astro';
 import HighlightCard from '@/components/HighlightCard.astro';
 import Chip from '@/components/Chip.astro';
+import NightSky from '@/components/NightSky.astro';
 import { affiliations, linkify } from '@/data/affiliations';
 import { highlights, researchAreas } from '@/data/highlights';
 const primary = affiliations.filter(a => a.primary);
@@ -144,6 +145,7 @@ const erdos = [
     </section>
 
   </div>
+  <NightSky />
 </BaseLayout>
 
 <style>

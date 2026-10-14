@@ -182,17 +182,22 @@ A name spelled two ways in the bib makes two nodes.
 
 The trophies are listed in `src/lib/trophies.ts` (title, tier, the hint shown while locked, the description shown once earned); the code that awards them lives with each egg, and `src/scripts/eggs.ts` keeps the progress in the visitor's browser.
 The tracker opens with `?` or `h`, or from the cup in the footer.
+It also shows the visitor's level, from Prospective Student to Full Professor (`LEVELS` in `trophies.ts`, by share of trophy points), and a toast announces each level gained.
 
 | Egg | Where | Trophy |
 | --- | --- | --- |
-| Konami code (↑↑↓↓←→←→BA): retro look until reload | any page | Up, Up, Down, Down |
+| Konami code (↑↑↓↓←→←→BA; on phones, swipe the arrows and tap twice): retro look until reload | any page | Up, Up, Down, Down |
 | Campfire: "Progress saved" | footer | Bonfire Lit |
 | Theme toggle, to light | header | Let There Be Light |
 | Pixel-art gear and `tinker()` | browser console | Tinkerer |
+| `sudo()`: "You are not in the sudoers file…" | browser console | Not in the Sudoers File |
+| Stars, in the dark theme between 19:00 and 06:00 local time | Home | A riveder le stelle |
+| ♞ beside the heading: a mate-in-two puzzle | CV | Mate in Two |
+| Speaker button: co-authors play a note on hover, one step up the C major scale per shared paper | Statistics | Ensemble, for three notes of a triad within 1.5 s |
 | d20: jumps to a random paper | Publications | Roll for Initiative, Critical Fail, Critical Success |
-| Depth gauge, seabed and safety stop at 5 m | Publications, Research (`depth` prop of `BaseLayout`) | Seabed, Safety Stop |
+| Depth gauge (a mask breathing out bubbles), seabed and safety stop at 5 m | Publications, Research (`depth` prop of `BaseLayout`) | Seabed, Safety Stop |
 | `N`, or a click on the central node: knight's tour | Statistics | Knight's Tour |
-| `i`: mock EXIF | Gallery, enlarged view | Pixel Peeper; Curator for opening every piece |
+| `i`, or the ⓘ on the image: mock EXIF | Gallery, enlarged view | Pixel Peeper; Curator for opening every piece |
 | Gear sounds, off by default | 404 | Encore; Off the Map for visiting, Cryptanalyst for decrypting by hand |
 
 Each gallery piece may carry its EXIF line:
@@ -207,6 +212,9 @@ Each gallery piece may carry its EXIF line:
 `dpi` defaults to the year of the piece and can be overridden.
 A piece without `exif` shows nothing.
 The current values are placeholders: camera, aperture and exposure are random, and ISO was measured from the mean grey level of each image, rescaled across the collection.
+
+The chess puzzle comes from Lichess (CC0): `npm run puzzle` writes `src/data/puzzle.json`, and the deploy workflow runs it next to the citation metrics, so the puzzle changes at every deploy and at the Monday refresh.
+The script rebuilds the position and checks that the solution ends in mate; if anything fails it keeps the previous puzzle.
 
 On the d20, a natural 1 lands on the oldest thesis and a natural 20 on `CRIT_SUCCESS` in `publications.astro` (a bib key; empty means the first entry of the list).
 

@@ -63,6 +63,7 @@ gear += 'Z';
 
 <script>
   import { unlock } from '@/scripts/eggs';
+  import { speakerButton, soundOn, click, chord } from '@/scripts/sound';
 
   const msg = document.getElementById('nf-msg')!;
   const slider = document.getElementById('nf-slider')!;
@@ -77,58 +78,8 @@ gear += 'Z';
   });
   const cipher = shift(plain, 26 - KEY);   // shifting it by KEY gives the plain text back
 
-  // ── sound: a click per notch, a chord on the key; synthesised, off by default ──
-  const soundBtn = document.getElementById('nf-sound') as HTMLButtonElement;
-  const SPEAKER = '<path d="M3 9h4l5-4v14l-5-4H3z" fill="currentColor" stroke="none"/>';
-  const ICON_ON = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">${SPEAKER}<path d="M15.5 9a4 4 0 0 1 0 6M18 6.5a7.5 7.5 0 0 1 0 11"/></svg>`;
-  const ICON_OFF = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">${SPEAKER}<path d="M16 10l4 4M20 10l-4 4"/></svg>`;
-  let soundOn = false;
-  try { soundOn = localStorage.getItem('eo-sound') === 'on'; } catch { /* no storage */ }
-  let ctx: AudioContext | null = null;
-  function audio() {
-    ctx ??= new AudioContext();
-    if (ctx.state === 'suspended') ctx.resume();
-    return ctx;
-  }
-  function showSound() {
-    soundBtn.innerHTML = soundOn ? ICON_ON : ICON_OFF;
-    soundBtn.setAttribute('aria-pressed', String(soundOn));
-  }
-  function click() {
-    if (!soundOn) return;
-    const a = audio(), t = a.currentTime;
-    const o = a.createOscillator(), g = a.createGain();
-    o.type = 'square';
-    o.frequency.setValueAtTime(1400, t);
-    o.frequency.exponentialRampToValueAtTime(500, t + 0.03);
-    g.gain.setValueAtTime(0.04, t);
-    g.gain.exponentialRampToValueAtTime(0.0001, t + 0.04);
-    o.connect(g).connect(a.destination);
-    o.start(t);
-    o.stop(t + 0.05);
-  }
-  function chord() {
-    const a = audio(), t = a.currentTime + 0.05;
-    [523.25, 659.25, 783.99, 1046.5].forEach((f, i) => {   // C5 E5 G5 C6, rolled
-      const o = a.createOscillator(), g = a.createGain();
-      const s = t + i * 0.09;
-      o.type = 'triangle';
-      o.frequency.value = f;
-      g.gain.setValueAtTime(0.0001, s);
-      g.gain.exponentialRampToValueAtTime(0.08, s + 0.02);
-      g.gain.exponentialRampToValueAtTime(0.0001, s + 1.4);
-      o.connect(g).connect(a.destination);
-      o.start(s);
-      o.stop(s + 1.5);
-    });
-  }
-  soundBtn.addEventListener('click', () => {
-    soundOn = !soundOn;
-    try { localStorage.setItem('eo-sound', soundOn ? 'on' : 'off'); } catch { /* no storage */ }
-    showSound();
-    click();
-  });
-  showSound();
+  // sound: a click per notch, a chord on the key (src/scripts/sound.ts); off by default
+  speakerButton(document.getElementById('nf-sound') as HTMLButtonElement, () => click());
   unlock('lost');
 
   let k = 0;
@@ -141,7 +92,7 @@ gear += 'Z';
     click();
     if (k === KEY) {
       if (!auto) unlock('cryptanalyst');
-      if (soundOn) {
+      if (soundOn()) {
         chord();
         unlock('encore');
       }

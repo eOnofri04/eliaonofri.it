@@ -1,8 +1,8 @@
 // Easter eggs: trophies, their tracker, and the site-wide eggs (Konami code, console
 // message, campfire, page visits). Page-specific eggs import `unlock` and friends.
 // Progress lives in this browser's localStorage only (in memory when that is blocked).
-import { TROPHIES, TIER_POINTS, SECTIONS, type Tier, type Trophy } from '@/lib/trophies';
-import { cupSvg } from '@/lib/pixel';
+import { TROPHIES, TIER_POINTS, SECTIONS, levelOf, type Tier } from '@/lib/trophies';
+import { cupSvg, capSvg } from '@/lib/pixel';
 
 interface State {
   got: Record<string, string>;      // trophy id -> ISO date earned
@@ -28,13 +28,21 @@ function write(s: State) {
 
 export const has = (id: string) => !!read().got[id];
 
-/** Earns a trophy (once), with a toast; earning all the others earns the platinum. */
+const TOTAL = TROPHIES.reduce((a, t) => a + TIER_POINTS[t.tier], 0);
+const percent = (s: State) => Math.round((TROPHIES.reduce((a, t) => a + (s.got[t.id] ? TIER_POINTS[t.tier] : 0), 0) / TOTAL) * 100);
+
+/** Earns a trophy (once), with a toast, and another when the visitor's level rises;
+ * earning all the others earns the platinum. */
 export function unlock(id: string): boolean {
   const s = read();
   if (s.got[id] || !BY_ID.has(id)) return false;
+  const before = levelOf(percent(s));
   s.got[id] = new Date().toISOString();
   write(s);
-  toast(BY_ID.get(id)!);
+  const t = BY_ID.get(id)!;
+  toast(t.tier === 'platinum' ? 'Platinum trophy earned' : 'Trophy earned', t.title, t.tier);
+  const after = levelOf(percent(s));
+  if (after.n > before.n) toast('Level up', `Lv. ${after.n} · ${after.title}`, 'level');
   if (id !== 'platinum' && TROPHIES.every((t) => t.id === 'platinum' || s.got[t.id])) unlock('platinum');
   refresh();
   return true;
@@ -62,10 +70,11 @@ export function record(name: string, n: number) {
 }
 
 // ── toasts ──
-const queue: Trophy[] = [];
+interface Toast { kind: string; title: string; tier: Tier | 'level'; }
+const queue: Toast[] = [];
 let showing = false;
-function toast(t: Trophy) {
-  queue.push(t);
+function toast(kind: string, title: string, tier: Toast['tier']) {
+  queue.push({ kind, title, tier });
   if (!showing) nextToast();
 }
 function nextToast() {
@@ -82,7 +91,7 @@ function nextToast() {
   const el = document.createElement('button');
   el.type = 'button';
   el.className = `egg-toast tier-${t.tier}`;
-  el.innerHTML = `${cupSvg()}<span><span class="egg-kind">${t.tier === 'platinum' ? 'Platinum trophy earned' : 'Trophy earned'}</span><strong>${t.title}</strong></span>`;
+  el.innerHTML = `${t.tier === 'level' ? capSvg() : cupSvg()}<span><span class="egg-kind">${t.kind}</span><strong>${t.title}</strong></span>`;
   el.addEventListener('click', openTracker);
   box.append(el);
   requestAnimationFrame(() => requestAnimationFrame(() => el.classList.add('in')));
@@ -105,9 +114,8 @@ function progress(id: string, s: State): string {
 function render() {
   if (!dlg) return;
   const s = read();
-  const total = TROPHIES.reduce((a, t) => a + TIER_POINTS[t.tier], 0);
-  const earned = TROPHIES.reduce((a, t) => a + (s.got[t.id] ? TIER_POINTS[t.tier] : 0), 0);
-  const pct = Math.round((earned / total) * 100);
+  const pct = percent(s);
+  const level = levelOf(pct);
   const date = (d: string) => new Date(d).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
   const tiers = TIERS.map((tier) => {
     const all = TROPHIES.filter((t) => t.tier === tier);
@@ -123,7 +131,10 @@ function render() {
   }).join('');
   dlg.innerHTML = `
     <div class="egg-head">
-      <h2>Trophies</h2>
+      <div>
+        <h2>Trophies</h2>
+        <p class="egg-level tier-level">${capSvg()}Lv. ${level.n} · ${level.title}</p>
+      </div>
       <button type="button" class="egg-close" data-egg-close aria-label="Close">×</button>
     </div>
     <div class="egg-sum">
@@ -202,6 +213,10 @@ function consoleArt() {
     unlock('tinkerer');
     return 'Trophy earned: Tinkerer. Press ? on the page to see what else there is.';
   };
+  (window as unknown as { sudo: (...args: unknown[]) => string }).sudo = () => {
+    unlock('sudo');
+    return 'You are not in the sudoers file. This incident will be reported.';
+  };
 }
 
 export function initEggs() {
@@ -214,12 +229,9 @@ export function initEggs() {
   }
   if (path.startsWith('/it/')) unlock('bilingual');
 
-  // tracker: ? or h, or the footer button
+  // Konami code: keys, or on touch screens swipes for the arrows and two taps for B, A
   let k = 0;
-  document.addEventListener('keydown', (ev) => {
-    const el = ev.target as HTMLElement;
-    if (ev.ctrlKey || ev.metaKey || ev.altKey || el.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(el.tagName)) return;
-    const key = ev.key.toLowerCase();
+  function konami(key: string) {
     // a third ↑ keeps the first two
     k = key === KONAMI[k] ? k + 1 : key === 'arrowup' ? (k === 2 ? 2 : 1) : 0;
     if (k === KONAMI.length) {
@@ -227,8 +239,28 @@ export function initEggs() {
       document.documentElement.classList.toggle('retro');
       unlock('konami');
     }
+  }
+  document.addEventListener('keydown', (ev) => {
+    const el = ev.target as HTMLElement;
+    if (ev.ctrlKey || ev.metaKey || ev.altKey || el.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(el.tagName)) return;
+    const key = ev.key.toLowerCase();
+    konami(key);
+    // tracker: ? or h, or the footer button
     if (ev.key === '?' || key === 'h') openTracker();
   });
+  let touch: { x: number; y: number } | null = null;
+  document.addEventListener('touchstart', (ev) => {
+    touch = ev.touches.length === 1 ? { x: ev.touches[0].clientX, y: ev.touches[0].clientY } : null;
+  }, { passive: true });
+  document.addEventListener('touchend', (ev) => {
+    if (!touch) return;
+    const dx = ev.changedTouches[0].clientX - touch.x;
+    const dy = ev.changedTouches[0].clientY - touch.y;
+    touch = null;
+    if (Math.max(Math.abs(dx), Math.abs(dy)) < 30) konami(k === 8 ? 'b' : k === 9 ? 'a' : 'tap');
+    else if (Math.abs(dx) > Math.abs(dy)) konami(dx > 0 ? 'arrowright' : 'arrowleft');
+    else konami(dy > 0 ? 'arrowdown' : 'arrowup');
+  }, { passive: true });
   document.querySelectorAll('[data-egg-open]').forEach((b) => b.addEventListener('click', openTracker));
 
   // the campfire in the footer is a save point

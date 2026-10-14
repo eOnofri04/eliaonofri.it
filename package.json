@@ -8,6 +8,7 @@
     "preview": "astro preview",
     "sync:bib": "cp CV_repo/bibdesk-database.bib src/data/publications.bib",
     "metrics": "node scripts/fetch-metrics.mjs",
+    "puzzle": "node scripts/fetch-puzzle.mjs",
     "sync:cv": "npm run sync:bib && for t in light dark; do f=CV_repo/CV_Onofri_$t.pdf; if [ -f $f ]; then cp $f public/cv/ && echo \"copied $f\"; else echo \"skipped $f (not found)\"; fi; done"
   },
   "dependencies": {
@@ -17,6 +18,7 @@
     "@fontsource-variable/source-serif-4": "^5.2.9",
     "@fontsource/vt323": "^5.3.0",
     "astro": "^7.0.4",
+    "chess.js": "^1.4.0",
     "d3-force": "^3.0.0"
   },
   "devDependencies": {

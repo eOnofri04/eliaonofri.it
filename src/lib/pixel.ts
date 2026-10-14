@@ -69,3 +69,29 @@ export const FIRE_B = [
   ...LOGS,
 ];
 export const FIRE_PALETTE = { Y: '#ffd166', O: '#f08a3c', R: '#d1495b', B: '#8a5a3b', b: '#5e3c26' };
+
+// A diving mask, front view: yellow frame, tinted lenses, nose pocket, strap.
+export const MASK = [
+  '..YYYYYYYYYY..',
+  '.YGWGGYYGWGGY.',
+  'SYGGWGYYGGWGYS',
+  'SYGGGGYYGGGGYS',
+  '.YGGGGYYGGGGY.',
+  '..YYYYGGYYYY..',
+  '.....YYYY.....',
+];
+export const MASK_PALETTE = { Y: '#e0b354', G: '#7fc4cf', W: '#e8f7f9', S: '#8a8878' };
+
+// A mortarboard, for level-up toasts (same tier variables as the cup).
+export const CAP = [
+  '.....KK.....',
+  '...KKKKKK...',
+  '.KKKKKKKKKK.',
+  'KKKKKKKKKKKK',
+  '.KKKKKKKKKKT',
+  '...KKKKKK..T',
+  '...MMMMMM..T',
+  '...MMMMMM.TT',
+  '....MMMM..TT',
+];
+export const capSvg = (cls = 'cap') => pixelSvg(CAP, { K: 'var(--tm)', M: 'var(--td)', T: 'var(--tl)' }, cls);

@@ -1,0 +1,82 @@
+---
+// Easter egg: in the dark theme, between 19:00 and 06:00 local time, stars twinkle
+// behind the home page, and now and then one falls.
+// «E quindi uscimmo a riveder le stelle» (Inferno XXXIV, 139).
+---
+<div class="night-sky" id="night-sky" aria-hidden="true" hidden></div>
+
+<script>
+  import { unlock } from '@/scripts/eggs';
+
+  const sky = document.getElementById('night-sky')!;
+  const hour = new Date().getHours();
+  const night = hour >= 19 || hour < 6;
+  let drawn = false;
+
+  function draw() {
+    for (let i = 0; i < 70; i++) {
+      const s = document.createElement('span');
+      const size = Math.random() < 0.85 ? 1 + Math.random() : 2 + Math.random();
+      // denser towards the top of the screen
+      s.style.cssText = `left:${(Math.random() * 100).toFixed(2)}%;top:${(Math.random() ** 1.6 * 85).toFixed(2)}%;`
+        + `width:${size.toFixed(1)}px;height:${size.toFixed(1)}px;`
+        + `animation-duration:${(3 + Math.random() * 4).toFixed(1)}s;animation-delay:${(-Math.random() * 7).toFixed(1)}s`;
+      sky.appendChild(s);
+    }
+    sky.appendChild(document.createElement('i'));   // the falling star
+    drawn = true;
+  }
+
+  function update() {
+    const dark = document.documentElement.getAttribute('data-theme') !== 'light';
+    sky.hidden = !(night && dark);
+    if (sky.hidden) return;
+    if (!drawn) draw();
+    unlock('stars');
+  }
+
+  // the sky also appears when switching to the dark theme at night
+  new MutationObserver(update).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+  update();
+</script>
+
+<style>
+  .night-sky {
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    overflow: hidden;
+    pointer-events: none;
+  }
+  .night-sky[hidden] { display: none; }
+  .night-sky :global(span) {
+    position: absolute;
+    border-radius: 50%;
+    background: #f5f4ec;
+    box-shadow: 0 0 3px rgba(245, 244, 236, 0.6);
+    animation: twinkle 4s ease-in-out infinite;
+  }
+  @keyframes twinkle {
+    0%, 100% { opacity: 0.15; }
+    50% { opacity: 0.85; }
+  }
+  .night-sky :global(i) {
+    position: absolute;
+    top: 10%;
+    left: 72%;
+    width: 90px;
+    height: 1px;
+    background: linear-gradient(to right, #f5f4ec, transparent);
+    opacity: 0;
+    animation: fall 23s linear 6s infinite;
+  }
+  @keyframes fall {
+    0% { opacity: 0; transform: translate(0, 0) rotate(-20deg); }
+    1% { opacity: 0.9; }
+    4%, 100% { opacity: 0; transform: translate(-260px, 95px) rotate(-20deg); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .night-sky :global(span) { animation: none; opacity: 0.5; }
+    .night-sky :global(i) { display: none; }
+  }
+</style>

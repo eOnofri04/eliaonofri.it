@@ -197,6 +197,7 @@ const maxYearCites = Math.max(1, ...metrics.perYear.map((p) => p.citations));
             <button type="button" data-zoom="in" aria-label="Zoom in">+</button>
             <button type="button" data-zoom="out" aria-label="Zoom out">−</button>
             <button type="button" data-zoom="reset" aria-label="Reset view">⟲</button>
+            <button type="button" id="graph-sound" aria-pressed="false" aria-label="Sound" title="Sound"></button>
           </div>
         </div>
         <figcaption class="graph-legend">
@@ -237,6 +238,7 @@ const maxYearCites = Math.max(1, ...metrics.perYear.map((p) => p.citations));
 <script>
   import { forceSimulation, forceManyBody, forceLink, forceCenter, forceCollide, forceX, forceY } from 'd3-force';
   import { unlock, record } from '@/scripts/eggs';
+  import { speakerButton, soundOn, note } from '@/scripts/sound';
 
   interface GNode { id: string; name: string; count: number; elia: boolean; url?: string; topic?: string; shares?: { id: string; w: number }[]; x?: number; y?: number; fx?: number | null; fy?: number | null; }
   interface GLink { source: any; target: any; weight: number; }
@@ -439,7 +441,7 @@ const maxYearCites = Math.max(1, ...metrics.perYear.map((p) => p.citations));
       g.addEventListener('pointerup', endNode);
       g.addEventListener('pointercancel', endNode);
       g.addEventListener('keydown', (e) => { if ((e as KeyboardEvent).key === 'Enter') open(); });
-      g.addEventListener('pointerenter', () => focus(n.id));
+      g.addEventListener('pointerenter', () => { focus(n.id); play(n); });
       g.addEventListener('pointerleave', () => focus(null));
       g.addEventListener('focus', () => focus(n.id));
       g.addEventListener('blur', () => focus(null));
@@ -473,6 +475,22 @@ const maxYearCites = Math.max(1, ...metrics.perYear.map((p) => p.citations));
       .force('y', forceY(height / 2).strength(0.04))
       .force('center', forceCenter(width / 2, height / 2))
       .on('tick', tick);
+
+    // ── easter egg: with the sound on, hovering a co-author plays a note of C major, one
+    // step higher per shared paper; three notes of a triad within 1.5 s make a chord ──
+    const DEGREES = [0, 2, 4, 5, 7, 9, 11];
+    const heard: { d: number; t: number }[] = [];
+    speakerButton(document.getElementById('graph-sound') as HTMLButtonElement);
+    function play(n: GNode) {
+      if (!soundOn() || n.elia) return;
+      const i = n.count - 1;
+      note(261.63 * 2 ** ((12 * Math.floor(i / 7) + DEGREES[i % 7]) / 12), 0, 0.9);
+      const now = performance.now();
+      heard.push({ d: i % 7, t: now });
+      while (now - heard[0].t > 1500) heard.shift();
+      const degrees = new Set(heard.map((h) => h.d));
+      if ([0, 1, 2, 3, 4, 5, 6].some((r) => degrees.has(r) && degrees.has((r + 2) % 7) && degrees.has((r + 4) % 7))) unlock('ensemble');
+    }
 
     // ── easter egg: N, or a click on the central node, moves it like a chess knight over
     // an 8×8 board, touring it by Warnsdorff's rule (complete from e4); Esc ends the tour ──
@@ -760,6 +778,8 @@ const maxYearCites = Math.max(1, ...metrics.perYear.map((p) => p.citations));
     transition: color 0.15s, border-color 0.15s;
   }
   .graph-controls button:hover { color: var(--ink); border-color: var(--teal); }
+  .graph-controls :global(svg) { display: block; width: 16px; height: 16px; margin: auto; }
+  .graph-controls button[aria-pressed='true'] { color: var(--gold); border-color: var(--gold); }
   .graph-legend {
     display: flex;
     flex-wrap: wrap;

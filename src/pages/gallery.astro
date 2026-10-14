@@ -88,12 +88,12 @@ const facets = usedFacets(pieces.map((p) => p.cls));
       <div class="lb-mat">
         <img id="lb-img" alt="" />
         <p class="lb-exif" id="lb-exif" hidden></p>
+        <button class="lb-info" id="lb-info" type="button" aria-pressed="false" aria-label="Camera data" title="Camera data (i)">i</button>
       </div>
       <figcaption>
         <h3 id="lb-title"></h3>
         <p id="lb-cap"></p>
         <a id="lb-src" href="#"></a>
-        <button class="lb-info" id="lb-info" type="button" aria-pressed="false" title="Camera data (i)">i</button>
       </figcaption>
     </figure>
   </dialog>
@@ -147,7 +147,7 @@ const facets = usedFacets(pieces.map((p) => p.cls));
     left: 50%;
     bottom: 10px;
     transform: translateX(-50%);
-    max-width: calc(100% - 20px);
+    max-width: calc(100% - 84px);
     margin: 0;
     padding: 4px 12px;
     border-radius: 4px;
@@ -159,25 +159,27 @@ const facets = usedFacets(pieces.map((p) => p.cls));
     text-align: center;
   }
   .lb-exif[hidden] { display: none; }
-  .lightbox figcaption { position: relative; }
+  /* on the corner of the mat, which stays light in both themes */
   .lb-info {
     position: absolute;
-    right: 14px;
-    bottom: 14px;
-    width: 22px;
-    height: 22px;
+    right: 8px;
+    bottom: 8px;
+    width: 24px;
+    height: 24px;
+    padding: 0;
     border-radius: 50%;
-    border: 1px solid var(--rule);
-    background: transparent;
-    color: var(--muted);
+    border: 1px solid #cfc9be;
+    background: #fcfcfa;
+    color: #6f6e60;
     font-family: var(--serif);
     font-style: italic;
-    font-size: 0.8rem;
+    font-weight: 600;
+    font-size: 0.85rem;
     line-height: 1;
     cursor: pointer;
-    opacity: 0.6;
   }
-  .lb-info:hover, .lb-info[aria-pressed='true'] { opacity: 1; color: var(--gold); border-color: var(--gold); }
+  .lb-info[hidden] { display: none; }
+  .lb-info:hover, .lb-info[aria-pressed='true'] { color: #fcfcfa; background: #c79a3e; border-color: #c79a3e; }
   .lb-mat img {
     max-width: 100%;
     max-height: 72vh;

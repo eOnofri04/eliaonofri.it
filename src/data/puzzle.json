@@ -1,0 +1,10 @@
+{
+  "id": "mDWF4",
+  "fen": "6rk/4R1qp/3pPp2/8/8/P1B1b1rP/1PP1QRP1/7K b - - 0 37",
+  "solution": [
+    "g3h3",
+    "g2h3",
+    "g7g1"
+  ],
+  "rating": 1626
+}

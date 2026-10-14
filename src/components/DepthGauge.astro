@@ -1,11 +1,15 @@
 ---
 // A diver's depth gauge for long pages (easter egg): scrolling is diving, the bottom of
 // the page is the seabed at 40 m. On the way back up, holding at about 5 m for a
-// (fast-forwarded) three-minute safety stop earns a trophy.
+// (fast-forwarded) three-minute safety stop earns a trophy. The marker is a pixel-art
+// mask, breathing out bubbles as the diver moves (and now and then at rest).
+import { pixelSvg, MASK, MASK_PALETTE } from '@/lib/pixel';
+const mask = pixelSvg(MASK, MASK_PALETTE);
 ---
 <div class="depth" id="depth" aria-hidden="true">
-  <div class="depth-scale"><span class="depth-mark"></span></div>
-  <span class="depth-val">0 m</span>
+  <div class="depth-scale">
+    <div class="depth-diver"><Fragment set:html={mask} /><span class="depth-val">0 m</span></div>
+  </div>
   <span class="depth-msg"></span>
 </div>
 
@@ -15,6 +19,25 @@
   const MAX = 40;                     // metres at the bottom of the page
   const STOP = [3.5, 6.5];            // the safety-stop band
   const box = document.getElementById('depth')!;
+  const scale = box.querySelector<HTMLElement>('.depth-scale')!;
+  const still = window.matchMedia('(prefers-reduced-motion: reduce)');
+  const narrow = window.matchMedia('(max-width: 1280px)');
+  let depth = 0;
+  let lastBubble = 0;
+
+  // a bubble rises from the mask, wobbling, and fades
+  function bubble(delay = 0) {
+    if (still.matches || narrow.matches || depth < 1) return;
+    const b = document.createElement('span');
+    const size = 3 + Math.random() * 4;
+    b.className = 'bubble';
+    b.style.cssText = `top:${(depth / MAX) * 100}%;width:${size}px;height:${size}px;`
+      + `--dx:${(Math.random() * 12 - 6).toFixed(1)}px;animation-delay:${delay}ms`;
+    scale.appendChild(b);
+    b.addEventListener('animationend', () => b.remove());
+  }
+  // the diver breathes out every couple of seconds
+  window.setInterval(() => { bubble(); bubble(160); bubble(380); }, 2600);
   const val = box.querySelector<HTMLElement>('.depth-val')!;
   const msg = box.querySelector<HTMLElement>('.depth-msg')!;
   let seabed = false;
@@ -27,7 +50,13 @@
     const room = document.documentElement.scrollHeight - window.innerHeight;
     const f = room > 0 ? Math.min(1, Math.max(0, window.scrollY / room)) : 0;
     const d = f * MAX;
+    depth = d;
     box.style.setProperty('--f', String(f));
+    const now = performance.now();
+    if (now - lastBubble > 140) {
+      lastBubble = now;
+      bubble();
+    }
     box.classList.toggle('on', d >= 1);
     val.textContent = `−${Math.round(d)} m`;
 
@@ -68,14 +97,10 @@
   .depth {
     --f: 0;
     position: fixed;
-    right: 18px;
+    right: 30px;
     top: 50%;
     transform: translateY(-50%);
     z-index: 5;
-    display: grid;
-    grid-template-columns: auto auto;
-    align-items: start;
-    gap: 0 8px;
     font-family: var(--mono);
     font-size: 0.7rem;
     color: var(--muted);
@@ -83,37 +108,71 @@
     transition: opacity 0.4s;
     pointer-events: none;
   }
-  .depth.on { opacity: 0.75; }
+  .depth.on { opacity: 0.85; }
+  /* the water column */
   .depth-scale {
-    grid-row: span 2;
     position: relative;
     width: 6px;
-    height: 160px;
+    height: 180px;
     border: 1px solid var(--rule);
     border-radius: 3px;
-    background: linear-gradient(var(--teal-tint), color-mix(in srgb, var(--teal) 30%, transparent));
+    background: linear-gradient(var(--teal-tint), color-mix(in srgb, var(--teal) 35%, transparent));
   }
-  .depth-mark {
+  .depth-diver {
     position: absolute;
-    left: -4px;
-    right: -4px;
-    top: calc(var(--f) * 100% - 1px);
-    height: 2px;
-    background: var(--gold);
+    left: 50%;
+    top: calc(var(--f) * 100%);
+    transform: translate(-50%, -50%);
   }
-  .depth-val { margin-top: calc(var(--f) * 160px - 0.7em); color: var(--ink-soft); }
+  .depth-diver :global(svg) { display: block; width: 34px; height: 17px; }
+  .depth-val {
+    position: absolute;
+    right: calc(100% + 6px);
+    top: 50%;
+    transform: translateY(-50%);
+    white-space: nowrap;
+    color: var(--ink-soft);
+  }
   .depth-msg {
     position: absolute;
-    right: 0;
-    top: calc(100% + 8px);
+    right: -8px;
+    top: calc(100% + 12px);
     width: 14em;
     text-align: right;
   }
-  /* no room in the margin: a small pill at the bottom left */
-  @media (max-width: 1240px) {
-    .depth { top: auto; bottom: 14px; left: 14px; right: auto; transform: none; display: flex; gap: 8px; align-items: center; }
-    .depth-scale { display: none; }
-    .depth-val { margin: 0; background: var(--panel); border: 1px solid var(--rule); border-radius: 999px; padding: 2px 9px; }
+  .depth-scale :global(.bubble) {
+    position: absolute;
+    left: 50%;
+    margin: -8px 0 0 -3px;
+    border: 1px solid color-mix(in srgb, var(--teal) 70%, var(--ink));
+    border-radius: 50%;
+    background: color-mix(in srgb, var(--ink) 12%, transparent);
+    opacity: 0;
+    animation: rise 1.8s ease-out forwards;
+  }
+  @keyframes rise {
+    0% { opacity: 0; transform: translate(0, 0) scale(0.6); }
+    15% { opacity: 0.9; }
+    50% { transform: translate(var(--dx), -30px) scale(1); }
+    100% { opacity: 0; transform: translate(calc(var(--dx) * -0.5), -64px) scale(1.15); }
+  }
+  /* no room in the margin: a small pill at the bottom left, without bubbles */
+  @media (max-width: 1280px) {
+    .depth { top: auto; bottom: 14px; left: 14px; right: auto; transform: none; display: flex; align-items: center; gap: 8px; }
+    .depth-scale { width: auto; height: auto; border: 0; background: none; }
+    .depth-diver {
+      position: static;
+      transform: none;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--panel);
+      border: 1px solid var(--rule);
+      border-radius: 999px;
+      padding: 3px 10px 3px 7px;
+    }
+    .depth-diver :global(svg) { width: 20px; height: 10px; }
+    .depth-val { position: static; transform: none; }
     .depth-msg { position: static; width: auto; text-align: left; }
   }
 </style>
