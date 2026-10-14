@@ -7,5 +7,11 @@
   "height": 926,
   "source": "Centorrino_Corbetta_Cristiani_etal_21",
   "date": "2021-04",
-  "reviewed": false
+  "reviewed": false,
+  "exif": {
+    "camera": "TikZ",
+    "aperture": "0.92",
+    "exposure": "40 min",
+    "iso": 20000
+  }
 }

@@ -3,7 +3,8 @@
 // The message arrives encrypted with a Caesar shift. The gear is a slider on a rail:
 // its position is the shift applied to the ciphertext, so moving it to KEY decrypts the
 // message; the arrows step it by one, and "decrypt" rolls it there. Without JavaScript
-// the plain message is shown.
+// the plain message is shown. Easter eggs: optional gear sounds (off by default), and
+// trophies for visiting, for decrypting by hand, and for decrypting with the sound on.
 import BaseLayout from '@/layouts/BaseLayout.astro';
 
 const MAX = 25;   // shifts 0..25
@@ -47,6 +48,7 @@ gear += 'Z';
     <div class="nf-controls">
       <span class="nf-rot" id="nf-rot">ROT{KEY}</span>
       <button class="nf-decrypt" id="nf-decrypt" type="button">decrypt</button>
+      <button class="nf-sound" id="nf-sound" type="button" aria-pressed="false" aria-label="Gear sounds" title="Gear sounds"></button>
     </div>
 
     <p class="nf-erdos">This page has an Erdős number of ∞.</p>
@@ -60,6 +62,8 @@ gear += 'Z';
 </BaseLayout>
 
 <script>
+  import { unlock } from '@/scripts/eggs';
+
   const msg = document.getElementById('nf-msg')!;
   const slider = document.getElementById('nf-slider')!;
   const rot = document.getElementById('nf-rot')!;
@@ -73,10 +77,78 @@ gear += 'Z';
   });
   const cipher = shift(plain, 26 - KEY);   // shifting it by KEY gives the plain text back
 
+  // ── sound: a click per notch, a chord on the key; synthesised, off by default ──
+  const soundBtn = document.getElementById('nf-sound') as HTMLButtonElement;
+  const SPEAKER = '<path d="M3 9h4l5-4v14l-5-4H3z" fill="currentColor" stroke="none"/>';
+  const ICON_ON = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">${SPEAKER}<path d="M15.5 9a4 4 0 0 1 0 6M18 6.5a7.5 7.5 0 0 1 0 11"/></svg>`;
+  const ICON_OFF = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">${SPEAKER}<path d="M16 10l4 4M20 10l-4 4"/></svg>`;
+  let soundOn = false;
+  try { soundOn = localStorage.getItem('eo-sound') === 'on'; } catch { /* no storage */ }
+  let ctx: AudioContext | null = null;
+  function audio() {
+    ctx ??= new AudioContext();
+    if (ctx.state === 'suspended') ctx.resume();
+    return ctx;
+  }
+  function showSound() {
+    soundBtn.innerHTML = soundOn ? ICON_ON : ICON_OFF;
+    soundBtn.setAttribute('aria-pressed', String(soundOn));
+  }
+  function click() {
+    if (!soundOn) return;
+    const a = audio(), t = a.currentTime;
+    const o = a.createOscillator(), g = a.createGain();
+    o.type = 'square';
+    o.frequency.setValueAtTime(1400, t);
+    o.frequency.exponentialRampToValueAtTime(500, t + 0.03);
+    g.gain.setValueAtTime(0.04, t);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + 0.04);
+    o.connect(g).connect(a.destination);
+    o.start(t);
+    o.stop(t + 0.05);
+  }
+  function chord() {
+    const a = audio(), t = a.currentTime + 0.05;
+    [523.25, 659.25, 783.99, 1046.5].forEach((f, i) => {   // C5 E5 G5 C6, rolled
+      const o = a.createOscillator(), g = a.createGain();
+      const s = t + i * 0.09;
+      o.type = 'triangle';
+      o.frequency.value = f;
+      g.gain.setValueAtTime(0.0001, s);
+      g.gain.exponentialRampToValueAtTime(0.08, s + 0.02);
+      g.gain.exponentialRampToValueAtTime(0.0001, s + 1.4);
+      o.connect(g).connect(a.destination);
+      o.start(s);
+      o.stop(s + 1.5);
+    });
+  }
+  soundBtn.addEventListener('click', () => {
+    soundOn = !soundOn;
+    try { localStorage.setItem('eo-sound', soundOn ? 'on' : 'off'); } catch { /* no storage */ }
+    showSound();
+    click();
+  });
+  showSound();
+  unlock('lost');
+
   let k = 0;
   let timer: number | undefined;
+  let auto = false;   // true while "decrypt" is rolling the gear
   function set(v: number) {
+    const before = k;
     k = Math.max(0, Math.min(MAX, Math.round(v)));
+    if (k === before) return;
+    click();
+    if (k === KEY) {
+      if (!auto) unlock('cryptanalyst');
+      if (soundOn) {
+        chord();
+        unlock('encore');
+      }
+    }
+    render();
+  }
+  function render() {
     slider.style.setProperty('--k', String(k));
     slider.setAttribute('aria-valuenow', String(k));
     msg.textContent = shift(cipher, k);
@@ -92,6 +164,7 @@ gear += 'Z';
   }
   slider.addEventListener('pointerdown', (ev) => {
     window.clearInterval(timer);
+    auto = false;
     slider.setPointerCapture(ev.pointerId);
     slider.classList.add('dragging');
     fromPointer(ev);
@@ -101,6 +174,7 @@ gear += 'Z';
   });
   slider.addEventListener('pointerup', () => slider.classList.remove('dragging'));
   slider.addEventListener('keydown', (ev) => {
+    auto = false;
     const moves: Record<string, number> = { ArrowLeft: -1, ArrowDown: -1, ArrowRight: 1, ArrowUp: 1 };
     if (ev.key in moves) set(k + moves[ev.key]);
     else if (ev.key === 'Home') set(0);
@@ -113,19 +187,21 @@ gear += 'Z';
   document.querySelectorAll<HTMLButtonElement>('.nf-step').forEach((b) =>
     b.addEventListener('click', () => {
       window.clearInterval(timer);
+      auto = false;
       set(k + Number(b.dataset.step));
     }));
 
   // "decrypt" rolls the gear to the key, one shift at a time
   btn.addEventListener('click', () => {
     window.clearInterval(timer);
+    auto = true;
     timer = window.setInterval(() => {
       if (k === KEY) return window.clearInterval(timer);
       set(k + Math.sign(KEY - k));
     }, 80);
   });
 
-  set(0);
+  render();
 </script>
 
 <style>
@@ -241,7 +317,6 @@ gear += 'Z';
   @media (prefers-reduced-motion: reduce) {
     .nf-cog, .nf-teeth { transition: none; }
   }
-  }
 
   .nf-controls {
     display: flex;
@@ -268,6 +343,17 @@ gear += 'Z';
     cursor: pointer;
   }
   .nf-decrypt:hover { color: var(--gold); border-color: var(--gold); }
+  .nf-sound {
+    width: 26px;
+    height: 26px;
+    padding: 4px;
+    border: 0;
+    background: none;
+    color: var(--muted);
+    cursor: pointer;
+  }
+  .nf-sound :global(svg) { width: 100%; height: 100%; display: block; }
+  .nf-sound:hover, .nf-sound[aria-pressed='true'] { color: var(--gold); }
   .nf-erdos {
     font-family: var(--serif);
     font-style: italic;

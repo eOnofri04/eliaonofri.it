@@ -7,5 +7,11 @@
   "height": 622,
   "source": "Centorrino_Cristiani_Ferrara_etal_23",
   "date": "2023-02",
-  "reviewed": false
+  "reviewed": false,
+  "exif": {
+    "camera": "TikZ",
+    "aperture": "1.41",
+    "exposure": "2 days",
+    "iso": 25600
+  }
 }

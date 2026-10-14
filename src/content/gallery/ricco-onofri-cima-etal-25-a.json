@@ -7,5 +7,11 @@
   "height": 1600,
   "source": "Ricco_Onofri_Cima_etal_25",
   "date": "2025-09",
-  "reviewed": false
+  "reviewed": false,
+  "exif": {
+    "camera": "TikZ",
+    "aperture": "1.41",
+    "exposure": "1 month",
+    "iso": 6400
+  }
 }

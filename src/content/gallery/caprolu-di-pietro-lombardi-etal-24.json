@@ -7,5 +7,11 @@
   "height": 1600,
   "source": "Caprolu_Di-Pietro_Lombardi_etal_24",
   "date": "2024-07",
-  "reviewed": false
+  "reviewed": false,
+  "exif": {
+    "camera": "seaborn",
+    "aperture": "2.72",
+    "exposure": "2 weeks",
+    "iso": 51200
+  }
 }

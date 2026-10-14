@@ -7,5 +7,11 @@
   "height": 1056,
   "source": "Onofri_Corbetta_22",
   "date": "2022-01",
-  "reviewed": false
+  "reviewed": false,
+  "exif": {
+    "camera": "TikZ",
+    "aperture": "0.92",
+    "exposure": "1 month",
+    "iso": 51200
+  }
 }

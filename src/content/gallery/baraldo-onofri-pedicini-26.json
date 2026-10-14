@@ -7,5 +7,11 @@
   "height": 863,
   "source": "Baraldo_Onofri_Pedicini_26",
   "date": "2026",
-  "reviewed": false
+  "reviewed": false,
+  "exif": {
+    "camera": "TikZ",
+    "aperture": "1.41",
+    "exposure": "5h",
+    "iso": 64000
+  }
 }

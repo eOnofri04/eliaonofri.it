@@ -7,5 +7,11 @@
   "height": 1106,
   "source": "Caprolu_Di-Pietro_Lombardi_etal_26",
   "date": "2026-03",
-  "reviewed": false
+  "reviewed": false,
+  "exif": {
+    "camera": "matplotlib",
+    "aperture": "1.62",
+    "exposure": "1 week",
+    "iso": 51200
+  }
 }

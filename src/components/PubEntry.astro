@@ -111,4 +111,10 @@ const { id, idx, authorsHtml, title, venue, year, note, cls = { fields: [], apps
   }
   .pub-lnk:hover { text-decoration: underline; }
   .pub[hidden] { display: none; }
+  /* landed on by the d20 on the Publications page */
+  .pub.rolled { animation: rolled 2.6s ease-out; }
+  @keyframes rolled {
+    0%, 40% { background: var(--gold-tint); }
+    100% { background: transparent; }
+  }
 </style>

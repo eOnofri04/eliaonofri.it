@@ -7,5 +7,11 @@
   "height": 1167,
   "source": "Onofri_De-Salve_Mori_etal_27",
   "date": "2027",
-  "reviewed": false
+  "reviewed": false,
+  "exif": {
+    "camera": "TikZ",
+    "aperture": "1.62",
+    "exposure": "2 weeks",
+    "iso": 51200
+  }
 }

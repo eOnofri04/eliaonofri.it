@@ -7,5 +7,11 @@
   "height": 1208,
   "source": "Ricco_Onofri_Cima_etal_25",
   "date": "2025-09",
-  "reviewed": false
+  "reviewed": false,
+  "exif": {
+    "camera": "AI image generators",
+    "aperture": "0.69",
+    "exposure": "4 h",
+    "iso": 640
+  }
 }

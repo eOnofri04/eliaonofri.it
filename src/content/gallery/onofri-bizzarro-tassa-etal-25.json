@@ -7,5 +7,11 @@
   "height": 1600,
   "source": "Onofri_Bizzarro_Tassa_etal_25",
   "date": "2025-09",
-  "reviewed": false
+  "reviewed": false,
+  "exif": {
+    "camera": "seaborn",
+    "aperture": "3.14",
+    "exposure": "2 days",
+    "iso": 40000
+  }
 }

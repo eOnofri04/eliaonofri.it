@@ -7,5 +7,11 @@
   "height": 1000,
   "source": "Onofri_De-Salve_Mori_etal_27",
   "date": "2027",
-  "reviewed": false
+  "reviewed": false,
+  "exif": {
+    "camera": "AI image generators",
+    "aperture": "1.62",
+    "exposure": "3 days",
+    "iso": 6400
+  }
 }

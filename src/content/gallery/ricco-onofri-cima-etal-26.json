@@ -7,5 +7,11 @@
   "height": 492,
   "source": "Ricco_Onofri_Cima_etal_26",
   "date": "2026-07",
-  "reviewed": false
+  "reviewed": false,
+  "exif": {
+    "camera": "matplotlib",
+    "aperture": "1.41",
+    "exposure": "3 days",
+    "iso": 125
+  }
 }

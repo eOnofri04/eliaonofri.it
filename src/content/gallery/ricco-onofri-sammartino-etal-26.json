@@ -7,5 +7,11 @@
   "height": 1600,
   "source": "Ricco_Onofri_Sammartino_etal_26",
   "date": "2026",
-  "reviewed": false
+  "reviewed": false,
+  "exif": {
+    "camera": "matplotlib",
+    "aperture": "1.62",
+    "exposure": "2 weeks",
+    "iso": 40000
+  }
 }

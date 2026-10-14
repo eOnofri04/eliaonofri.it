@@ -10,5 +10,11 @@
     "numerical analysis",
     "computational biology"
   ],
-  "reviewed": false
+  "reviewed": false,
+  "exif": {
+    "camera": "matplotlib",
+    "aperture": "1.32",
+    "exposure": "2 weeks",
+    "iso": 40000
+  }
 }

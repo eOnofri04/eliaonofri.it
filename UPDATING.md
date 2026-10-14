@@ -163,6 +163,7 @@ and add `src/content/gallery/my-piece.json`:
 `date` (`YYYY`, `YYYY-MM` or `YYYY-MM-DD`) sets the order, newest first; it defaults to the publication date and can be changed to move a piece.
 A piece with no paper omits `source` and gets `"topics": [...]` instead; a piece with a paper may add `topics` too.
 `licence` defaults to CC BY-NC-SA 4.0, and `reviewed` is only my own checklist.
+`exif` is the mock camera data shown with the `i` key in the enlarged view (see [Easter eggs](#easter-eggs)).
 Deleting a piece means deleting both its `.json` and its `.webp`; originals can sit in the git-ignored `public/gallery/tmp/`.
 
 ## Collaboration graph
@@ -176,6 +177,38 @@ To link someone to a page, add an entry keyed by the hyphenated, lower-case name
 
 Nodes with a `url` get a gold ring and open it on click.
 A name spelled two ways in the bib makes two nodes.
+
+## Easter eggs
+
+The trophies are listed in `src/lib/trophies.ts` (title, tier, the hint shown while locked, the description shown once earned); the code that awards them lives with each egg, and `src/scripts/eggs.ts` keeps the progress in the visitor's browser.
+The tracker opens with `?` or `h`, or from the cup in the footer.
+
+| Egg | Where | Trophy |
+| --- | --- | --- |
+| Konami code (↑↑↓↓←→←→BA): retro look until reload | any page | Up, Up, Down, Down |
+| Campfire: "Progress saved" | footer | Bonfire Lit |
+| Theme toggle, to light | header | Let There Be Light |
+| Pixel-art gear and `tinker()` | browser console | Tinkerer |
+| d20: jumps to a random paper | Publications | Roll for Initiative, Critical Fail, Critical Success |
+| Depth gauge, seabed and safety stop at 5 m | Publications, Research (`depth` prop of `BaseLayout`) | Seabed, Safety Stop |
+| `N`, or a click on the central node: knight's tour | Statistics | Knight's Tour |
+| `i`: mock EXIF | Gallery, enlarged view | Pixel Peeper; Curator for opening every piece |
+| Gear sounds, off by default | 404 | Encore; Off the Map for visiting, Cryptanalyst for decrypting by hand |
+
+Each gallery piece may carry its EXIF line:
+
+```json
+"exif": { "camera": "matplotlib", "aperture": "3.14", "exposure": "3 days", "iso": 3200 }
+```
+
+`aperture` is a mathematical constant written numerically (π as `3.14`, e as `2.72`, φ as `1.62`, …) and shown as `f/3.14`.
+`exposure` is how long the figure took to make.
+`iso` encodes how light the picture is, on the camera scale from 100 (very dark) through 3200 (middling) to 64000 (very light); it is left out when absent.
+`dpi` defaults to the year of the piece and can be overridden.
+A piece without `exif` shows nothing.
+The current values are placeholders: camera, aperture and exposure are random, and ISO was measured from the mean grey level of each image, rescaled across the collection.
+
+On the d20, a natural 1 lands on the oldest thesis and a natural 20 on `CRIT_SUCCESS` in `publications.astro` (a bib key; empty means the first entry of the list).
 
 ## Citation metrics
 

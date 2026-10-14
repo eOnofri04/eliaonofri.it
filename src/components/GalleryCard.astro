@@ -17,10 +17,11 @@ interface Props {
   sourceKey?: string;   // absent for pieces not tied to a paper
   sourceTitle: string;
   cls: Classification;
+  exif?: string;        // mock camera data for the lightbox
 }
-const { id, title, caption, alt, image, width, height, tag, year, sourceKey, sourceTitle, cls } = Astro.props;
+const { id, title, caption, alt, image, width, height, tag, year, sourceKey, sourceTitle, cls, exif } = Astro.props;
 ---
-<article class="card" id={id} data-fields={cls.fields.join(' ')} data-apps={cls.apps.join(' ')}>
+<article class="card" id={id} data-exif={exif || undefined} data-fields={cls.fields.join(' ')} data-apps={cls.apps.join(' ')}>
   <button class="mat" type="button" data-lightbox aria-label={`Enlarge: ${title}`}>
     <img src={image} alt={alt} width={width} height={height} loading="lazy" decoding="async" />
   </button>

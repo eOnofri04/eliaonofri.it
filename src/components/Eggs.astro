@@ -1,0 +1,10 @@
+---
+// Site-wide easter eggs (see src/scripts/eggs.ts); the styles are global because the
+// toasts and the tracker are created by the script.
+import '@fontsource/vt323';
+import '@/styles/eggs.css';
+---
+<script>
+  import { initEggs } from '@/scripts/eggs';
+  initEggs();
+</script>

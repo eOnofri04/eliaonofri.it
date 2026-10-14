@@ -10,5 +10,11 @@
     "numerical analysis",
     "computational biology"
   ],
-  "reviewed": false
+  "reviewed": false,
+  "exif": {
+    "camera": "TikZ",
+    "aperture": "2.72",
+    "exposure": "1 month",
+    "iso": 64000
+  }
 }

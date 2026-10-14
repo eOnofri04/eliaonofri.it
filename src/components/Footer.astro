@@ -1,9 +1,14 @@
 ---
+import { pixelRects, cupSvg, FIRE_A, FIRE_B, FIRE_PALETTE } from '@/lib/pixel';
+import { TROPHIES } from '@/lib/trophies';
+
 interface Props {
   langLink?: { href: string; lang: 'en' | 'it' };
 }
 const { langLink } = Astro.props;
 const year = new Date().getFullYear();
+// the campfire: two pixel-art frames, alternated for the flicker
+const fire = `<svg viewBox="0 0 12 12" shape-rendering="crispEdges" aria-hidden="true"><g class="f-a">${pixelRects(FIRE_A, FIRE_PALETTE)}</g><g class="f-b">${pixelRects(FIRE_B, FIRE_PALETTE)}</g></svg>`;
 ---
 <footer>
   <div class="wrap">
@@ -38,14 +43,20 @@ const year = new Date().getFullYear();
     </div>
     <div class="foot-note">
       <span>© {year} Elia Onofri</span>
-      {langLink && (
-        <span>
-          {langLink.lang === 'it'
-            ? <><a href={langLink.href} hreflang="it">Leggi in italiano</a></>
-            : <><a href={langLink.href} hreflang="en">Read in English</a></>
-          }
+      <span class="foot-right">
+        {langLink && (
+          langLink.lang === 'it'
+            ? <a href={langLink.href} hreflang="it">Leggi in italiano</a>
+            : <a href={langLink.href} hreflang="en">Read in English</a>
+        )}
+        <span class="save">
+          <span class="save-msg" aria-live="polite">Progress saved</span>
+          <button class="campfire" type="button" data-campfire aria-label="Rest at the campfire" title="Rest at the campfire" set:html={fire} />
         </span>
-      )}
+        <button class="trophies tier-gold" type="button" data-egg-open aria-label="Trophies (press ? on any page)" title="Trophies (press ? on any page)">
+          <Fragment set:html={cupSvg()} /><span data-egg-count>0/{TROPHIES.length}</span>
+        </button>
+      </span>
     </div>
   </div>
 </footer>
@@ -95,6 +106,47 @@ const year = new Date().getFullYear();
     color: var(--muted);
   }
   .foot-note a:hover { color: var(--teal); }
+  .foot-right { display: inline-flex; align-items: center; gap: 16px; }
+
+  /* save point and trophy counter (easter eggs, src/scripts/eggs.ts) */
+  .save { position: relative; display: inline-flex; }
+  .campfire, .trophies {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 0;
+    border: 0;
+    background: none;
+    font: inherit;
+    color: var(--muted);
+    cursor: pointer;
+  }
+  .campfire :global(svg) { width: 18px; height: 18px; display: block; }
+  .trophies :global(svg) { width: 14px; height: 14px; display: block; }
+  .trophies:hover { color: var(--gold); }
+  .campfire :global(.f-a) { animation: flick-a 0.9s steps(1) infinite; }
+  .campfire :global(.f-b) { animation: flick-b 0.9s steps(1) infinite; }
+  @keyframes flick-a { 0% { opacity: 1; } 50% { opacity: 0; } }
+  @keyframes flick-b { 0% { opacity: 0; } 50% { opacity: 1; } }
+  .save-msg {
+    position: absolute;
+    bottom: calc(100% + 6px);
+    left: 50%;
+    transform: translateX(-50%);
+    white-space: nowrap;
+    color: var(--gold);
+    opacity: 0;
+    pointer-events: none;
+  }
+  .save-msg.show { animation: saved 2.4s ease-out; }
+  @keyframes saved {
+    0%, 70% { opacity: 1; }
+    100% { opacity: 0; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .campfire :global(.f-a) { animation: none; }
+    .campfire :global(.f-b) { animation: none; opacity: 0; }
+  }
 
   @media (max-width: 880px) {
     .foot-grid { grid-template-columns: 1fr 1fr; }

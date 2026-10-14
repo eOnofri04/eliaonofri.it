@@ -236,6 +236,7 @@ const maxYearCites = Math.max(1, ...metrics.perYear.map((p) => p.citations));
 
 <script>
   import { forceSimulation, forceManyBody, forceLink, forceCenter, forceCollide, forceX, forceY } from 'd3-force';
+  import { unlock, record } from '@/scripts/eggs';
 
   interface GNode { id: string; name: string; count: number; elia: boolean; url?: string; topic?: string; shares?: { id: string; w: number }[]; x?: number; y?: number; fx?: number | null; fy?: number | null; }
   interface GLink { source: any; target: any; weight: number; }
@@ -430,6 +431,7 @@ const maxYearCites = Math.max(1, ...metrics.perYear.map((p) => p.citations));
       const endNode = () => {
         if (dragNode !== n) return;
         if (!moved && !n.elia) open();    // click, not a drag → open modal
+        if (!moved && n.elia) hop();      // the central node is a knight (easter egg below)
         if (!n.elia) { n.fx = null; n.fy = null; }
         dragNode = null;
         sim.alphaTarget(0);
@@ -471,6 +473,97 @@ const maxYearCites = Math.max(1, ...metrics.perYear.map((p) => p.citations));
       .force('y', forceY(height / 2).strength(0.04))
       .force('center', forceCenter(width / 2, height / 2))
       .on('tick', tick);
+
+    // ── easter egg: N, or a click on the central node, moves it like a chess knight over
+    // an 8×8 board, touring it by Warnsdorff's rule (complete from e4); Esc ends the tour ──
+    const KN = [[1, 2], [2, 1], [2, -1], [1, -2], [-1, -2], [-2, -1], [-2, 1], [-1, 2]];
+    const still = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const board = document.createElementNS(SVGNS, 'g');
+    board.setAttribute('class', 'g-board');
+    viewport.insertBefore(board, gLinks);
+    // square s = file * 8 + rank; a1 is dark
+    const squares = Array.from({ length: 64 }, (_, i) => {
+      const r = document.createElementNS(SVGNS, 'rect');
+      r.setAttribute('class', `g-sq ${((i >> 3) + (i & 7)) % 2 ? 'lt' : 'dk'}`);
+      board.appendChild(r);
+      return r;
+    });
+    const log = document.createElement('div');
+    log.className = 'knight-log';
+    host.parentElement!.appendChild(log);
+    let tour: number[] = [];
+    let hopping = false;
+    const unit = () => Math.min(width, height) / 9.5;
+    const sqPos = (q: number) => ({ x: width / 2 + ((q >> 3) - 3.5) * unit(), y: height / 2 - ((q & 7) - 3.5) * unit() });
+    const sqName = (q: number) => 'abcdefgh'[q >> 3] + ((q & 7) + 1);
+    const free = (f: number, r: number) => f >= 0 && f < 8 && r >= 0 && r < 8 && !tour.includes(f * 8 + r);
+    const exits = (q: number) => KN.filter(([a, b]) => free((q >> 3) + a, (q & 7) + b)).map(([a, b]) => ((q >> 3) + a) * 8 + (q & 7) + b);
+    function layoutBoard() {
+      const u = unit();
+      squares.forEach((r, i) => {
+        const p = sqPos(i);
+        r.setAttribute('x', String(p.x - u / 2));
+        r.setAttribute('y', String(p.y - u / 2));
+        r.setAttribute('width', String(u));
+        r.setAttribute('height', String(u));
+      });
+    }
+    function hop() {
+      if (hopping) return;
+      if (!tour.length) {
+        tour = [4 * 8 + 3];             // e4
+        squares[tour[0]].classList.add('seen');
+        layoutBoard();
+        svg.classList.add('touring');
+      }
+      const from = tour[tour.length - 1];
+      const next = exits(from).sort((p, q) => exits(p).length - exits(q).length)[0];
+      if (next === undefined) return;
+      tour.push(next);
+      squares[next].classList.add('seen');
+      record('knight', tour.length);
+      log.textContent = tour.length === 64
+        ? '♘ 64/64 · tour complete'
+        : `♘ ${tour.length}/64 · N${sqName(from)}–${sqName(next)}`;
+      if (tour.length === 64) unlock('knight');
+      // along the L: the long leg first, then the short one
+      hopping = true;
+      const p0 = { x: me.fx ?? width / 2, y: me.fy ?? height / 2 };
+      const p1 = sqPos(next);
+      const corner = Math.abs((next >> 3) - (from >> 3)) === 2 ? { x: p1.x, y: p0.y } : { x: p0.x, y: p1.y };
+      const t0 = performance.now();
+      const D = still ? 0 : 260;
+      sim.alphaTarget(0.3).restart();
+      const frame = (now: number) => {
+        if (!hopping) return;
+        const t = D ? Math.min(1, (now - t0) / D) : 1;
+        const [a, b, u] = t < 2 / 3 ? [p0, corner, t * 1.5] : [corner, p1, (t - 2 / 3) * 3];
+        me.fx = a.x + (b.x - a.x) * u;
+        me.fy = a.y + (b.y - a.y) * u;
+        if (t < 1) requestAnimationFrame(frame);
+      };
+      requestAnimationFrame(frame);
+      // the hop ends on a timer, so that it lands even where frames are not drawn
+      window.setTimeout(() => {
+        hopping = false;
+        me.fx = p1.x; me.fy = p1.y;
+        sim.alphaTarget(0);
+      }, D);
+    }
+    function endTour() {
+      tour = [];
+      squares.forEach((r) => r.classList.remove('seen'));
+      svg.classList.remove('touring');
+      log.textContent = '';
+      me.fx = width / 2; me.fy = height / 2;
+      sim.alpha(0.3).restart();
+    }
+    document.addEventListener('keydown', (ev) => {
+      const el = ev.target as HTMLElement;
+      if (ev.ctrlKey || ev.metaKey || ev.altKey || /^(INPUT|TEXTAREA|SELECT)$/.test(el.tagName)) return;
+      if (ev.key.toLowerCase() === 'n') hop();
+      else if (ev.key === 'Escape' && tour.length && !document.querySelector('dialog[open]')) endTour();
+    });
 
     function tick() {
       const pad = 14;
@@ -537,6 +630,11 @@ const maxYearCites = Math.max(1, ...metrics.perYear.map((p) => p.citations));
       svg.setAttribute('viewBox', `0 0 ${width} ${height}`);
       svg.setAttribute('height', String(height));
       me.fx = width / 2; me.fy = height / 2;
+      if (tour.length) {
+        layoutBoard();
+        const p = sqPos(tour[tour.length - 1]);
+        me.fx = p.x; me.fy = p.y;
+      }
       sim.force('center', forceCenter(width / 2, height / 2));
       sim.force('x', forceX(width / 2).strength(0.04));
       sim.force('y', forceY(height / 2).strength(0.04));
@@ -682,6 +780,21 @@ const maxYearCites = Math.max(1, ...metrics.perYear.map((p) => p.citations));
   :global(.g-link) { stroke: var(--rule); stroke-opacity: 0.7; transition: stroke-opacity 0.15s; }
   :global(.g-link.dim) { stroke-opacity: 0.08; }
   :global(.g-node) { cursor: grab; }
+  /* the knight's board (easter egg) */
+  :global(.g-board) { display: none; }
+  :global(svg.touring .g-board) { display: inline; }
+  :global(.g-sq) { fill: var(--ink); opacity: 0.025; }
+  :global(.g-sq.dk) { opacity: 0.06; }
+  :global(.g-sq.seen) { fill: var(--gold); opacity: 0.16; }
+  .graph-wrap :global(.knight-log) {
+    position: absolute;
+    left: 12px;
+    bottom: 10px;
+    font-family: var(--mono);
+    font-size: 0.75rem;
+    color: var(--muted);
+    pointer-events: none;
+  }
   :global(.g-node circle) { fill: var(--muted); stroke: var(--bg); stroke-width: 1.5; transition: opacity 0.15s; }
   :global(.g-node.pie circle) { fill: none; }
   :global(.g-node.is-me circle) { fill: var(--gold); stroke-width: 2; }

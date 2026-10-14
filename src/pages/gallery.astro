@@ -28,6 +28,14 @@ const pieces = entries
       cls,
       tag: tagChip ? (tagChip.sub ?? tagChip.label) : 'Research',
       sourceTitle: pub ? pub.title.replace(/<[^>]+>/g, '') : '',
+      // mock EXIF line for the lightbox; dpi defaults to the year of the piece
+      exifLine: e.data.exif ? [
+        e.data.exif.camera,
+        e.data.exif.aperture && `f/${e.data.exif.aperture}`,
+        e.data.exif.exposure,
+        e.data.exif.iso && `ISO ${e.data.exif.iso}`,
+        `${e.data.exif.dpi ?? (parseInt(date.slice(0, 4), 10) || pub?.year || '')} dpi`,
+      ].filter(Boolean).join(' · ') : '',
     };
   })
   // newest first; undated pieces last
@@ -46,7 +54,7 @@ const facets = usedFacets(pieces.map((p) => p.cls));
 
     <FacetFilters target="gal-grid" fields={facets.fields} apps={facets.apps} />
 
-    <div class="gal-grid" id="gal-grid">
+    <div class="gal-grid" id="gal-grid" data-total={pieces.length}>
       {pieces.map((p) => (
         <GalleryCard
           id={p.id}
@@ -61,6 +69,7 @@ const facets = usedFacets(pieces.map((p) => p.cls));
           sourceKey={p.source}
           sourceTitle={p.sourceTitle}
           cls={p.cls}
+          exif={p.exifLine}
         />
       ))}
     </div>
@@ -76,11 +85,15 @@ const facets = usedFacets(pieces.map((p) => p.cls));
     <button class="lb-nav lb-prev" type="button" data-lb="prev" aria-label="Previous figure">‹</button>
     <button class="lb-nav lb-next" type="button" data-lb="next" aria-label="Next figure">›</button>
     <figure>
-      <div class="lb-mat"><img id="lb-img" alt="" /></div>
+      <div class="lb-mat">
+        <img id="lb-img" alt="" />
+        <p class="lb-exif" id="lb-exif" hidden></p>
+      </div>
       <figcaption>
         <h3 id="lb-title"></h3>
         <p id="lb-cap"></p>
         <a id="lb-src" href="#"></a>
+        <button class="lb-info" id="lb-info" type="button" aria-pressed="false" title="Camera data (i)">i</button>
       </figcaption>
     </figure>
   </dialog>
@@ -127,6 +140,44 @@ const facets = usedFacets(pieces.map((p) => p.cls));
     display: flex;
     justify-content: center;
   }
+  .lb-mat { position: relative; }
+  /* mock camera data (easter egg), toggled with i */
+  .lb-exif {
+    position: absolute;
+    left: 50%;
+    bottom: 10px;
+    transform: translateX(-50%);
+    max-width: calc(100% - 20px);
+    margin: 0;
+    padding: 4px 12px;
+    border-radius: 4px;
+    background: rgba(20, 20, 16, 0.78);
+    color: #f5f4ec;
+    font-family: var(--mono);
+    font-size: 0.74rem;
+    letter-spacing: 0.04em;
+    text-align: center;
+  }
+  .lb-exif[hidden] { display: none; }
+  .lightbox figcaption { position: relative; }
+  .lb-info {
+    position: absolute;
+    right: 14px;
+    bottom: 14px;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    border: 1px solid var(--rule);
+    background: transparent;
+    color: var(--muted);
+    font-family: var(--serif);
+    font-style: italic;
+    font-size: 0.8rem;
+    line-height: 1;
+    cursor: pointer;
+    opacity: 0.6;
+  }
+  .lb-info:hover, .lb-info[aria-pressed='true'] { opacity: 1; color: var(--gold); border-color: var(--gold); }
   .lb-mat img {
     max-width: 100%;
     max-height: 72vh;
@@ -165,6 +216,8 @@ const facets = usedFacets(pieces.map((p) => p.cls));
 </style>
 
 <script>
+  import { unlock, remember, record } from '@/scripts/eggs';
+
   const grid = document.getElementById('gal-grid')!;
   const cards = [...grid.querySelectorAll<HTMLElement>('.card')];
 
@@ -174,8 +227,19 @@ const facets = usedFacets(pieces.map((p) => p.cls));
   const lbTitle = document.getElementById('lb-title')!;
   const lbCap = document.getElementById('lb-cap')!;
   const lbSrc = document.getElementById('lb-src') as HTMLAnchorElement;
+  const lbExif = document.getElementById('lb-exif')!;
+  const lbInfo = document.getElementById('lb-info') as HTMLButtonElement;
+  const total = Number(grid.dataset.total);
   let current = 0;
+  let exifOn = false;
   const visible = () => cards.filter((c) => !c.hidden);
+
+  function setExif(on: boolean) {
+    exifOn = on && !!lbExif.textContent;
+    lbExif.hidden = !exifOn;
+    lbInfo.setAttribute('aria-pressed', String(exifOn));
+    if (exifOn) unlock('exif');
+  }
 
   function show(card: HTMLElement) {
     const img = card.querySelector('img')!;
@@ -190,6 +254,12 @@ const facets = usedFacets(pieces.map((p) => p.cls));
       lbSrc.textContent = `From: ${src.title}`;
     }
     current = visible().indexOf(card);
+    lbExif.textContent = card.dataset.exif ?? '';
+    lbInfo.hidden = !card.dataset.exif;
+    setExif(exifOn);
+    // every piece opened counts towards "Curator"
+    record('gallery-total', total);
+    if (remember('gallery', card.id) >= total) unlock('curator');
   }
   function step(d: number) {
     const v = visible();
@@ -208,9 +278,11 @@ const facets = usedFacets(pieces.map((p) => p.cls));
     if (action === 'close' || t === lb) lb.close();
     else if (action === 'prev') step(-1);
     else if (action === 'next') step(1);
+    else if (t.closest('#lb-info')) setExif(!exifOn);
   });
   lb.addEventListener('keydown', (ev) => {
     if (ev.key === 'ArrowLeft') step(-1);
     else if (ev.key === 'ArrowRight') step(1);
+    else if (ev.key.toLowerCase() === 'i' && !ev.ctrlKey && !ev.metaKey && !ev.altKey) setExif(!exifOn);
   });
 </script>

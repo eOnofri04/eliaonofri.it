@@ -7,5 +7,11 @@
   "height": 1149,
   "source": "Paoluzzi_Shapiro_DiCarlo_etal_23",
   "date": "2023-02",
-  "reviewed": false
+  "reviewed": false,
+  "exif": {
+    "camera": "Julia Plots",
+    "aperture": "3.14",
+    "exposure": "2 weeks",
+    "iso": 2500
+  }
 }

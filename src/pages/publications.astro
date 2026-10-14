@@ -10,6 +10,13 @@ const all = getPublications();
 const total = all.length;
 const facets = usedFacets(all.map((p) => p.cls));
 
+// the d20 (easter egg): a natural 1 lands on the oldest thesis, a natural 20 on CRIT_SUCCESS
+// (a bib key; empty means the first entry of the list)
+const CRIT_SUCCESS = '';
+const theses = sections.find((s) => s.type === 'thesis')?.items ?? [];
+const critFail = [...theses].sort((a, b) => (a.year ?? 0) - (b.year ?? 0))[0]?.key ?? '';
+const critSuccess = CRIT_SUCCESS || sections[0]?.items[0]?.key || '';
+
 // continuous [n] numbering across sections, in display order
 let n = 0;
 const numbered = sections.map((s) => ({
@@ -18,6 +25,7 @@ const numbered = sections.map((s) => ({
 }));
 ---
 <BaseLayout
+  depth
   title="Publications"
   description="Publications by Elia Onofri — cryptography, graph theory, numerical modelling, and machine learning."
 >
@@ -31,6 +39,19 @@ const numbered = sections.map((s) => ({
     </p>
 
     <FacetFilters target="pub-list" fields={facets.fields} apps={facets.apps} />
+
+    <div class="d20-row">
+      <button class="d20" id="d20" type="button" data-fail={critFail} data-success={critSuccess}
+        aria-label="Roll a d20 for a random paper" title="Roll for a random paper">
+        <svg viewBox="0 0 40 40" aria-hidden="true">
+          <path class="d20-edge" d="M20 2 L35.6 11 L35.6 29 L20 38 L4.4 29 L4.4 11 Z" />
+          <path class="d20-face" d="M20 10 L28.7 25 L11.3 25 Z" />
+          <path class="d20-edge" d="M20 10 L20 2 M20 10 L4.4 11 M20 10 L35.6 11 M28.7 25 L35.6 11 M28.7 25 L35.6 29 M28.7 25 L20 38 M11.3 25 L4.4 11 M11.3 25 L4.4 29 M11.3 25 L20 38" />
+          <text x="20" y="22.6" text-anchor="middle" id="d20-num">20</text>
+        </svg>
+      </button>
+      <span class="d20-out" id="d20-out" aria-live="polite"></span>
+    </div>
 
     <div id="pub-list">
       {numbered.map((s) => (
@@ -57,7 +78,76 @@ const numbered = sections.map((s) => ({
 </BaseLayout>
 
 
+<script>
+  import { unlock } from '@/scripts/eggs';
+
+  const die = document.getElementById('d20') as HTMLButtonElement;
+  const num = document.getElementById('d20-num')!;
+  const out = document.getElementById('d20-out')!;
+  const still = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  die.addEventListener('click', () => {
+    if (die.classList.contains('rolling')) return;
+    const r = 1 + Math.floor(Math.random() * 20);
+    die.classList.add('rolling');
+    out.textContent = '';
+    const flick = window.setInterval(() => { num.textContent = String(1 + Math.floor(Math.random() * 20)); }, 60);
+    window.setTimeout(() => {
+      window.clearInterval(flick);
+      die.classList.remove('rolling');
+      num.textContent = String(r);
+      land(r);
+    }, still ? 0 : 700);
+  });
+
+  function land(r: number) {
+    const shown = [...document.querySelectorAll<HTMLElement>('#pub-list .pub')].filter((p) => !p.hidden && !p.closest('[hidden]'));
+    if (!shown.length) return;
+    const pick = (key?: string) => shown.find((p) => p.id === key) ?? shown[Math.floor(Math.random() * shown.length)];
+    const target = r === 1 ? pick(die.dataset.fail) : r === 20 ? pick(die.dataset.success) : pick();
+    out.textContent = r === 20 ? 'Natural 20: critical success!' : r === 1 ? 'Natural 1: critical fail.' : `Rolled ${r}.`;
+    target.scrollIntoView({ block: 'center', behavior: still ? 'auto' : 'smooth' });
+    target.classList.remove('rolled');
+    void target.offsetWidth;
+    target.classList.add('rolled');
+    unlock('initiative');
+    if (r === 1) unlock('nat1');
+    if (r === 20) unlock('nat20');
+  }
+</script>
+
 <style>
+  .d20-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: -12px 0 22px;
+  }
+  .d20 {
+    width: 38px;
+    height: 38px;
+    padding: 0;
+    border: 0;
+    background: none;
+    cursor: pointer;
+    color: var(--muted);
+  }
+  .d20:hover { color: var(--gold); }
+  .d20 svg { width: 100%; height: 100%; display: block; overflow: visible; }
+  .d20-edge { fill: none; stroke: currentColor; stroke-width: 1.3; stroke-linejoin: round; }
+  .d20-face { fill: color-mix(in srgb, currentColor 14%, transparent); stroke: currentColor; stroke-width: 1.3; stroke-linejoin: round; }
+  .d20 text { fill: currentColor; font-family: var(--mono); font-size: 7.5px; font-weight: 700; }
+  .d20.rolling svg { animation: roll 0.7s cubic-bezier(0.3, 0.7, 0.4, 1); }
+  @keyframes roll {
+    from { transform: rotate(0) scale(1); }
+    50% { transform: rotate(400deg) scale(1.15); }
+    to { transform: rotate(720deg) scale(1); }
+  }
+  .d20-out { font-family: var(--mono); font-size: 0.78rem; color: var(--muted); }
+  @media (prefers-reduced-motion: reduce) {
+    .d20.rolling svg { animation: none; }
+  }
+
   .eyebrow {
     font-family: var(--mono);
     font-size: 0.78rem;

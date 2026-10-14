@@ -20,6 +20,14 @@ const gallery = defineCollection({
     date: z.string().regex(/^\d{4}(-\d{2}){0,2}$/).optional(),
     topics: z.array(z.string()).optional(), // taxonomy keywords; added to the bib's when a source is given
     licence: z.string().default('CC BY-NC-SA 4.0'),
+    // mock camera data, shown with the `i` key in the enlarged view (easter egg)
+    exif: z.object({
+      camera: z.string().optional(),                     // the tool that drew it
+      aperture: z.string().optional(),                   // a constant, numerically: "3.14" is shown as f/3.14
+      exposure: z.string().optional(),                   // how long it took to make
+      iso: z.union([z.number(), z.string()]).optional(), // brightness: 100 very dark … 64000 very light
+      dpi: z.union([z.number(), z.string()]).optional(), // defaults to the year of the piece
+    }).optional(),
     reviewed: z.boolean().default(false), // caption checked by Elia
   }),
 });

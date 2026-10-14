@@ -7,5 +7,11 @@
   "height": 933,
   "source": "Castiglione_Nardini_Onofri_etal_22",
   "date": "2022-07",
-  "reviewed": false
+  "reviewed": false,
+  "exif": {
+    "camera": "TikZ",
+    "aperture": "0.92",
+    "exposure": "1 day",
+    "iso": 40000
+  }
 }
