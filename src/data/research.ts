@@ -173,9 +173,10 @@ export const service: ServiceBlock[] = [
       {
         label: 'Journal referee',
         tags: [
+          { name: 'Pervasive and Mobile Computing (Elsevier)', detail: '2024–26' },
+          { name: 'Transactions on Dependable and Secure Computing (IEEE)', detail: '2026' },
           { name: 'Journal of Mathematical Cryptology (De Gruyter)', detail: '2025–26' },
           { name: 'Frontiers in Communications and Networks', detail: '2025–26' },
-          { name: 'Pervasive and Mobile Computing (Elsevier)', detail: '2024–25' },
           { name: 'Journal on Computing and Cultural Heritage (ACM)', detail: '2025' },
           { name: 'Frontiers in Computer Science', detail: '2025' },
           { name: 'Scientific Reports (Nature)', detail: '2025' },
@@ -192,6 +193,7 @@ export const service: ServiceBlock[] = [
           { name: 'ICML', detail: '2026' },
           { name: 'ICBC', detail: '2026' },
           { name: 'ESORICS', detail: '2026' },
+          { name: 'IEEE CNS', detail: '2026' },
           { name: 'IEEE SECON', detail: '2026' },
           { name: 'IEEE/ACM CCGrid', detail: '2026' },
           { name: 'YAMC', detail: '2024–26' },

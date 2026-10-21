@@ -194,7 +194,7 @@ It also shows the visitor's level, from Prospective Student to Full Professor (`
 | Stars, in the dark theme between 19:00 and 06:00 local time | Home | A riveder le stelle |
 | ♞ beside the heading: a mate-in-two puzzle | CV | Mate in Two |
 | Speaker button: co-authors play a note on hover, one step up the C major scale per shared paper | Statistics | Ensemble, for three notes of a triad within 1.5 s |
-| d20: jumps to a random paper | Publications | Roll for Initiative, Critical Fail, Critical Success |
+| d20, or `R`: jumps to a random paper, the roll shown large mid-screen | Publications | Roll for Initiative, Critical Fail, Critical Success |
 | Depth gauge (a mask breathing out bubbles), seabed and safety stop at 5 m | Publications, Research (`depth` prop of `BaseLayout`) | Seabed, Safety Stop |
 | `N`, or a click on the central node: knight's tour | Statistics | Knight's Tour |
 | `i`, or the ⓘ on the image: mock EXIF | Gallery, enlarged view | Pixel Peeper; Curator for opening every piece |

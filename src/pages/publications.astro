@@ -42,7 +42,7 @@ const numbered = sections.map((s) => ({
 
     <div class="d20-row">
       <button class="d20" id="d20" type="button" data-fail={critFail} data-success={critSuccess}
-        aria-label="Roll a d20 for a random paper" title="Roll for a random paper">
+        aria-label="Roll a d20 for a random paper" aria-keyshortcuts="r" title="Roll for a random paper (R)">
         <svg viewBox="0 0 40 40" aria-hidden="true">
           <path class="d20-edge" d="M20 2 L35.6 11 L35.6 29 L20 38 L4.4 29 L4.4 11 Z" />
           <path class="d20-face" d="M20 10 L28.7 25 L11.3 25 Z" />
@@ -51,6 +51,17 @@ const numbered = sections.map((s) => ({
         </svg>
       </button>
       <span class="d20-out" id="d20-out" aria-live="polite"></span>
+    </div>
+
+    <!-- the roll, large in the middle of the screen; fades away once it lands -->
+    <div class="d20-pop" id="d20-pop" aria-hidden="true">
+      <svg viewBox="0 0 40 40">
+        <path class="d20-edge" d="M20 2 L35.6 11 L35.6 29 L20 38 L4.4 29 L4.4 11 Z" />
+        <path class="d20-face" d="M20 10 L28.7 25 L11.3 25 Z" />
+        <path class="d20-edge" d="M20 10 L20 2 M20 10 L4.4 11 M20 10 L35.6 11 M28.7 25 L35.6 11 M28.7 25 L35.6 29 M28.7 25 L20 38 M11.3 25 L4.4 11 M11.3 25 L4.4 29 M11.3 25 L20 38" />
+        <text x="20" y="22.6" text-anchor="middle" id="d20-pop-num">20</text>
+      </svg>
+      <span class="d20-pop-label" id="d20-pop-label"></span>
     </div>
 
     <div id="pub-list">
@@ -84,20 +95,42 @@ const numbered = sections.map((s) => ({
   const die = document.getElementById('d20') as HTMLButtonElement;
   const num = document.getElementById('d20-num')!;
   const out = document.getElementById('d20-out')!;
+  const pop = document.getElementById('d20-pop')!;
+  const popNum = document.getElementById('d20-pop-num')!;
+  const popLabel = document.getElementById('d20-pop-label')!;
   const still = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-  die.addEventListener('click', () => {
+  function roll() {
     if (die.classList.contains('rolling')) return;
     const r = 1 + Math.floor(Math.random() * 20);
     die.classList.add('rolling');
     out.textContent = '';
-    const flick = window.setInterval(() => { num.textContent = String(1 + Math.floor(Math.random() * 20)); }, 60);
+    popLabel.textContent = '';
+    delete pop.dataset.crit;
+    pop.classList.remove('landed');
+    void pop.offsetWidth;
+    pop.classList.add('rolling');
+    const flick = window.setInterval(() => {
+      num.textContent = popNum.textContent = String(1 + Math.floor(Math.random() * 20));
+    }, 60);
     window.setTimeout(() => {
       window.clearInterval(flick);
       die.classList.remove('rolling');
-      num.textContent = String(r);
+      pop.classList.remove('rolling');
+      num.textContent = popNum.textContent = String(r);
+      if (r === 1 || r === 20) pop.dataset.crit = r === 20 ? 'success' : 'fail';
+      popLabel.textContent = r === 20 ? 'Critical success!' : r === 1 ? 'Critical fail.' : '';
+      pop.classList.add('landed');
       land(r);
     }, still ? 0 : 700);
+  }
+
+  die.addEventListener('click', roll);
+  // R rolls too, as N starts the knight's tour on /statistics
+  document.addEventListener('keydown', (ev) => {
+    const el = ev.target as HTMLElement;
+    if (ev.ctrlKey || ev.metaKey || ev.altKey || el.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(el.tagName)) return;
+    if (ev.key.toLowerCase() === 'r' && !document.querySelector('dialog[open]')) roll();
   });
 
   function land(r: number) {
@@ -144,8 +177,52 @@ const numbered = sections.map((s) => ({
     to { transform: rotate(720deg) scale(1); }
   }
   .d20-out { font-family: var(--mono); font-size: 0.78rem; color: var(--muted); }
+
+  .d20-pop {
+    position: fixed;
+    inset: 0;
+    z-index: 60;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    pointer-events: none;
+    opacity: 0;
+    color: var(--ink);
+  }
+  .d20-pop[data-crit='success'] { color: var(--gold); }
+  .d20-pop[data-crit='fail'] { color: var(--terra); }
+  .d20-pop svg {
+    width: min(42vw, 180px);
+    height: auto;
+    overflow: visible;
+    filter: drop-shadow(0 6px 24px color-mix(in srgb, var(--bg) 80%, transparent));
+  }
+  .d20-pop .d20-edge, .d20-pop .d20-face { stroke-width: 1; }
+  .d20-pop .d20-face { fill: color-mix(in srgb, currentColor 18%, var(--bg)); }
+  .d20-pop text { fill: currentColor; font-family: var(--mono); font-size: 8px; font-weight: 700; }
+  .d20-pop-label {
+    min-height: 1.4em;
+    font-family: var(--mono);
+    font-size: 0.95rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+  .d20-pop.rolling { opacity: 1; }
+  .d20-pop.rolling svg { animation: roll 0.7s cubic-bezier(0.3, 0.7, 0.4, 1); }
+  .d20-pop.landed { animation: pop-fade 1.8s ease-in forwards; }
+  @keyframes pop-fade {
+    0% { opacity: 1; transform: scale(1.06); }
+    15% { transform: scale(1); }
+    55% { opacity: 1; }
+    100% { opacity: 0; transform: scale(0.96); }
+  }
+
   @media (prefers-reduced-motion: reduce) {
-    .d20.rolling svg { animation: none; }
+    .d20.rolling svg, .d20-pop.rolling svg { animation: none; }
+    .d20-pop.landed { animation-name: pop-fade-still; }
+    @keyframes pop-fade-still { 0%, 55% { opacity: 1; } 100% { opacity: 0; } }
   }
 
   .eyebrow {
